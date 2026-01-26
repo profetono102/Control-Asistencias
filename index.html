@@ -14,33 +14,48 @@
             --primary-green: #0e5b2f;
             --accent-orange: #e96925;
         }
+
+        @page {
+            size: letter;
+            margin: 0;
+        }
+
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; visibility: visible !important; }
-            #print-area { position: absolute; left: 0; top: 0; width: 100%; z-index: 9999; background: white; }
+            #print-area { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 215.9mm; 
+                height: 279.4mm; 
+                z-index: 9999; 
+                background: white; 
+            }
             
-            /* Distribución de 9 códigos (3x3) por hoja */
             .qr-grid { 
                 display: grid !important; 
                 grid-template-columns: repeat(3, 1fr) !important; 
                 grid-template-rows: repeat(3, 1fr) !important;
-                gap: 0 !important; 
-                padding: 0 !important;
-                width: 210mm; /* A4 width approximate */
-                height: 297mm; /* A4 height approximate */
+                width: 100% !important;
+                height: 100% !important;
+                gap: 0 !important;
             }
+
             .qr-print-card {
                 display: flex !important;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                border: 0.1mm solid #eee; /* Guía de corte muy tenue */
-                height: 99mm; /* 1/3 de A4 aprox */
-                page-break-inside: avoid;
+                border: 0.1mm solid #ddd; /* Línea de corte tenue */
+                box-sizing: border-box;
+                padding: 4mm; /* Margen de 4mm del código a la línea de corte */
             }
+
             .page-break { page-break-after: always; }
             body { background: white !important; -webkit-print-color-adjust: exact; margin: 0; padding: 0; }
         }
+
         .print-only { display: none; }
         .tab-active { border-bottom: 4px solid var(--primary-green); color: var(--primary-green); font-weight: bold; }
         .subtab-active { background-color: var(--primary-green) !important; color: white !important; }
@@ -51,7 +66,6 @@
         
         #qr-reader video { border-radius: 12px; }
         .qr-wrapper canvas, .qr-wrapper img { margin: 0 auto; }
-        img:not([src]) { visibility: hidden; }
         
         .report-card { background: white; border-radius: 1rem; border: 1px solid #e2e8f0; overflow: hidden; }
         .attendance-table th { background-color: #f8fafc; color: #64748b; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; }
@@ -59,19 +73,22 @@
         
         .total-column-cell { background-color: #fff7ed; font-weight: 900; color: var(--accent-orange); border-left: 2px solid #fed7aa; }
         
-        /* Estilo para el logo central en el QR */
         .qr-container-relative { position: relative; display: inline-block; }
-        .qr-logo-overlay {
+        .qr-logo-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 20%; /* Proporción segura para no romper la lectura */
-            height: 20%;
             background: white;
-            padding: 2px;
+            padding: 3px;
             border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 25%; /* Tamaño del parche central */
         }
+        .qr-logo-img { width: 100%; height: auto; }
+        .qr-logo-id { font-size: 5pt; font-weight: bold; color: black; line-height: 1; margin-top: 1px; font-family: monospace; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
@@ -103,7 +120,7 @@
         </div>
     </div>
 
-    <!-- MODAL QR -->
+    <!-- MODAL QR (Vista Previa) -->
     <div id="qr-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[180] flex items-center justify-center p-4 no-print">
         <div class="bg-white p-8 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl">
             <h3 id="modal-title" class="text-xl font-bold uppercase text-[#0e5b2f] leading-none"></h3>
@@ -116,7 +133,7 @@
         </div>
     </div>
 
-    <!-- SECCIÓN DE LOGIN -->
+    <!-- LOGIN -->
     <section id="section-login" class="fixed inset-0 bg-[#0e5b2f] z-[100] flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full space-y-6 text-center border-t-8 border-[#e96925]">
             <img src="logo.png" alt="Logo Colegio Xochicalli" class="h-24 mx-auto object-contain mb-2" onerror="this.style.display='none'">
@@ -128,7 +145,7 @@
                     <span id="login-btn-text">Conectando...</span>
                 </button>
                 <div id="login-error" class="text-xs font-bold text-red-500 hidden uppercase italic text-center">ID NO RECONOCIDO</div>
-                <div id="admin-hint" class="text-[10px] text-slate-400 font-bold uppercase hidden text-center mt-4 bg-slate-50 p-2 rounded italic text-center italic">Sistema nuevo: Use el ID 'ADMIN' para configurar</div>
+                <div id="admin-hint" class="text-[10px] text-slate-400 font-bold uppercase hidden text-center mt-4 bg-slate-50 p-2 rounded italic text-center italic">ID Superusuario habilitado</div>
             </div>
         </div>
     </section>
@@ -276,9 +293,9 @@
 
                 <div id="innercontent-impresion" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 text-center shadow-sm">
-                        <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2">Catálogo QR</h3>
-                        <p class="text-[10px] text-slate-400 italic">Formato optimizado 3x3 por hoja con logo central.</p>
-                        <button onclick="window.printAllQRs()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-900 transition-all uppercase text-xs shadow-md">Imprimir Catálogo (9 por hoja)</button>
+                        <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2">Catálogo QR (3x3)</h3>
+                        <p class="text-[10px] text-slate-400 italic">Formato optimizado para 9 códigos por hoja con logo central e ID.</p>
+                        <button onclick="window.printAllQRs()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-900 transition-all uppercase text-xs shadow-md">Imprimir 9 por hoja</button>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 shadow-sm">
                         <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2">Lista Maestra</h3>
@@ -291,7 +308,6 @@
                     </div>
                 </div>
 
-                <!-- SUBPANELES DE SISTEMA -->
                 <div id="innercontent-sistema" class="hidden space-y-4">
                     <div class="flex gap-2 bg-slate-100 p-1 rounded-xl w-fit">
                         <button onclick="window.switchSystemSubTab('borrar')" id="sys-tab-borrar" class="sys-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all">Borrar Asistencias</button>
@@ -323,7 +339,7 @@
                 </div>
             </div>
 
-            <!-- HISTORIAL (SOLO SUPERUSUARIO) -->
+            <!-- HISTORIAL -->
             <div id="subcontent-historial" class="hidden space-y-4">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
                     <h3 class="font-bold text-indigo-900 uppercase text-xs"><i class="fas fa-list-ul mr-1"></i> Bitácora de Acciones</h3>
@@ -340,7 +356,7 @@
                                 </tr>
                             </thead>
                             <tbody id="history-table-body" class="divide-y divide-slate-100 text-xs">
-                                <tr><td colspan="3" class="px-6 py-8 text-center text-slate-400 italic">Cargando historial...</td></tr>
+                                <tr><td colspan="3" class="px-6 py-8 text-center text-slate-400 italic">Cargando bitácora...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -570,7 +586,7 @@
         function updateScannerUI(r) { const b = document.getElementById('btn-camera-text'); const o = document.getElementById('camera-off-overlay'); if (r) { if(b) b.innerText = "Apagar Cámara"; if(o) o.classList.add('hidden'); } else { if(b) b.innerText = "Encender Cámara"; if(o) o.classList.remove('hidden'); } }
         function listenToAttendanceToday() { if (!currentUser) return; onSnapshot(asistenciasColl, (snap) => { const count = document.getElementById('scan-count'); const today = getMexicoDate(); scannedTodayIds.clear(); const logs = snap.docs.map(d => d.data()).filter(d => d.fecha === today).sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0)); logs.forEach(l => scannedTodayIds.add(l.alumnoId)); if(count) count.innerText = `${logs.length} HOY`; const list = document.getElementById('recent-logs'); if (logs.length === 0) { if(list) list.innerHTML = `<li class="p-4 text-center text-slate-400 italic text-sm uppercase font-bold">Sin registros hoy</li>`; return; } if(list) list.innerHTML = logs.slice(0, 10).map(l => `<li class="p-4 flex justify-between bg-white shadow-sm mb-1 px-4"><div><p class="font-bold uppercase text-xs">${l.nombre}</p><p class="text-[9px] text-slate-400 font-bold tracking-tighter">PROF: ${l.profesorNombre || 'N/A'}</p></div><span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-mono font-bold">${l.hora || '--:--'}</span></li>`).join(''); }); }
         
-        async function generateQRAsync(c, t, s) { return new Promise((r) => { new QRCode(c, { text: t, width: s, height: s, correctLevel : QRCode.CorrectLevel.H }); setTimeout(r, 120); }); }
+        async function generateQRAsync(c, t, s) { return new Promise((r) => { new QRCode(c, { text: t, width: s, height: s, correctLevel : QRCode.CorrectLevel.H }); setTimeout(r, 150); }); }
 
         async function onScanSuccess(t) {
             if (!currentUser || !loggedTeacher) return;
@@ -607,7 +623,6 @@
             loadStudents(); loadTeachers(); listenToAttendanceToday(); window.switchTab('scanner');
         }
 
-        // --- ASIGNACIONES GLOBALES ---
         window.attemptLogin = async () => {
             const inputVal = document.getElementById('input-login-id').value.trim();
             if (!inputVal) return;
@@ -983,23 +998,26 @@
                 card.innerHTML = `
                     <div class="qr-container-relative">
                         <div id="pqr-${s.id}" class="qr-wrapper"></div>
-                        <img src="logo.png" class="qr-logo-overlay" onerror="this.style.display='none'">
+                        <div class="qr-logo-container">
+                            <img src="logo.png" class="qr-logo-img" onerror="this.style.display='none'">
+                            <span class="qr-logo-id">${s.id}</span>
+                        </div>
                     </div>
                 `; 
                 grid.appendChild(card); 
             } 
             
-            // Generamos los QR con un tamaño mayor (250px) para la impresión 3x3
+            // Generamos los QR con un tamaño mayor (300px) para impresión de 9 por hoja
             for (const s of sorted) { 
                 const el = document.getElementById(`pqr-${s.id}`); 
-                if(el) await generateQRAsync(el, s.id, 250); 
+                if(el) await generateQRAsync(el, s.id, 300); 
             } 
             
             setTimeout(() => { 
                 window.print(); 
                 document.getElementById('custom-modal').classList.add('hidden');
                 document.getElementById('print-area').style.display = '';
-                logAction("Catálogo QR impreso (formato 3x3)");
+                logAction("Catálogo QR impreso (formato 3x3 con logo)");
             }, 1200); 
         };
 
@@ -1033,6 +1051,9 @@
         };
 
         window.init = init;
+        window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
+        window.closeModal = () => document.getElementById('qr-modal').classList.add('hidden');
+
         init();
     </script>
 </body>
