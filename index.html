@@ -132,6 +132,7 @@
             <div class="flex flex-wrap gap-2 no-print border-b border-slate-200 pb-4">
                 <button onclick="window.switchSubTab('asistencia')" id="subtab-asistencia" class="px-4 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold shadow-sm transition-all hover:bg-slate-50 uppercase text-slate-600">Asistencia</button>
                 <button onclick="window.switchSubTab('mantenimiento')" id="subtab-mantenimiento" class="hidden px-4 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold shadow-sm transition-all hover:bg-slate-50 text-[#e96925] uppercase">Mantenimiento</button>
+                <button onclick="window.switchSubTab('historial')" id="subtab-historial" class="hidden px-4 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold shadow-sm transition-all hover:bg-slate-50 text-indigo-600 uppercase"><i class="fas fa-history mr-1"></i>Historial</button>
             </div>
 
             <!-- ASISTENCIA -->
@@ -290,6 +291,30 @@
                 </div>
             </div>
 
+            <!-- HISTORIAL (SOLO SUPERUSUARIO) -->
+            <div id="subcontent-historial" class="hidden space-y-4">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-indigo-900 uppercase text-xs"><i class="fas fa-list-ul mr-1"></i> Bitácora de Acciones</h3>
+                    <button onclick="window.confirmResetHistory()" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-[10px] font-bold uppercase border border-red-200 transition-all">Reiniciar Historial</button>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-slate-400 text-[9px] uppercase font-bold tracking-wider border-b">
+                                <tr>
+                                    <th class="px-6 py-3">Fecha y Hora</th>
+                                    <th class="px-6 py-3">Usuario</th>
+                                    <th class="px-6 py-3">Acción Realizada</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body" class="divide-y divide-slate-100 text-xs">
+                                <tr><td colspan="3" class="px-6 py-8 text-center text-slate-400 italic">Cargando historial...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- TABLA GENERAL -->
             <div id="general-table-container" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden shadow-md">
                 <div id="table-title" class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
@@ -342,7 +367,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, where, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, where, deleteDoc, onSnapshot, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
         const firebaseConfig = {
@@ -375,9 +400,24 @@
         const alumnosColl = collection(db, 'artifacts', appId, 'public', 'data', 'alumnos');
         const maestrosColl = collection(db, 'artifacts', appId, 'public', 'data', 'maestros');
         const asistenciasColl = collection(db, 'artifacts', appId, 'public', 'data', 'asistencias');
+        const historialColl = collection(db, 'artifacts', appId, 'public', 'data', 'historial');
 
         const getMexicoDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City' }).format(new Date());
         const getMexicoTime = () => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
+
+        const logAction = async (description) => {
+            if (!loggedTeacher) return;
+            try {
+                await addDoc(historialColl, {
+                    usuario: loggedTeacher.nombre,
+                    usuarioId: loggedTeacher.id,
+                    fecha: getMexicoDate(),
+                    hora: getMexicoTime(),
+                    descripcion: description,
+                    timestamp: serverTimestamp()
+                });
+            } catch (e) { console.error("Error logging action:", e); }
+        };
 
         const showStatus = (m, y) => { 
             const e = document.getElementById('scan-status'); 
@@ -409,9 +449,22 @@
 
         const initAudio = () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); };
         const playSuccessSound = () => { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.setValueAtTime(880, audioCtx.currentTime); gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15); osc.start(); osc.stop(audioCtx.currentTime + 0.15); };
-        const playErrorSound = () => { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'square'; osc.frequency.setValueAtTime(120, audioCtx.currentTime); gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4); osc.start(); osc.stop(audioCtx.currentTime + 0.4); };
+        const playErrorSound = () => { 
+            initAudio(); 
+            const osc = audioCtx.createOscillator(); 
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); 
+            gainNode.connect(audioCtx.destination); 
+            osc.type = 'square'; 
+            osc.frequency.setValueAtTime(120, audioCtx.currentTime); 
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); 
+            gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1); 
+            gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4); 
+            osc.start(); 
+            osc.stop(audioCtx.currentTime + 0.4); 
+        };
 
-        async function checkAdminLockStatus() {
+        const checkAdminLockStatus = async () => {
             try {
                 const snap = await getDocs(maestrosColl);
                 const hasRealAdminInDB = snap.docs.some(d => d.data().esAdmin === true && d.id !== 'TLAHUISCALPANTECUTLI');
@@ -419,7 +472,7 @@
                 if (!hasRealAdminInDB && hint) hint.classList.remove('hidden');
                 else if(hint) hint.classList.add('hidden');
             } catch (e) {}
-        }
+        };
 
         async function init() {
             const initAuth = async () => {
@@ -497,6 +550,7 @@
                     const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', t));
                     if (snap.exists()) {
                         await addDoc(asistenciasColl, { alumnoId: t, nombre: snap.data().nombre, profesorId: loggedTeacher.id, profesorNombre: loggedTeacher.nombre, fecha: getMexicoDate(), hora: getMexicoTime(), timestamp: serverTimestamp() });
+                        await logAction(`Pase de lista: ${snap.data().nombre} (${t})`);
                         playSuccessSound(); showStatus(`REGISTRADO: ${snap.data().nombre}`, "success");
                     } else { playErrorSound(); showStatus("NO REGISTRADO", "error"); }
                 } catch (e) {}
@@ -511,12 +565,17 @@
             document.getElementById('user-display-name').innerText = loggedTeacher.nombre;
             document.getElementById('tab-admin').classList.remove('hidden');
             const subtabMaint = document.getElementById('subtab-mantenimiento');
+            const subtabHist = document.getElementById('subtab-historial');
             if (loggedTeacher.esAdmin) subtabMaint.classList.remove('hidden');
             else subtabMaint.classList.add('hidden');
+            
+            if (loggedTeacher.id === 'TLAHUISCALPANTECUTLI') subtabHist.classList.remove('hidden');
+            else subtabHist.classList.add('hidden');
+            
             loadStudents(); loadTeachers(); listenToAttendanceToday(); window.switchTab('scanner');
         }
 
-        // --- EXPOSICIÓN GLOBAL ---
+        // --- ASIGNACIONES GLOBALES ---
         window.attemptLogin = async () => {
             const inputVal = document.getElementById('input-login-id').value.trim();
             if (!inputVal) return;
@@ -524,18 +583,23 @@
             try {
                 if (id === 'TLAHUISCALPANTECUTLI') {
                     loggedTeacher = { id: 'TLAHUISCALPANTECUTLI', nombre: 'SUPERUSUARIO', materia: 'DIRECCIÓN', esAdmin: true };
-                    enterApp(); return;
+                    enterApp(); 
+                    await logAction("Superusuario inició sesión");
+                    return;
                 }
                 const snapMaestros = await getDocs(maestrosColl);
                 const hasRealAdminInDB = snapMaestros.docs.some(d => d.data().esAdmin === true && d.id !== 'TLAHUISCALPANTECUTLI');
                 if (!hasRealAdminInDB && id === 'ADMIN') {
                     loggedTeacher = { id: 'ADMIN', nombre: 'ADMIN INICIAL', materia: 'SISTEMA', esAdmin: true };
-                    enterApp(); return;
+                    enterApp();
+                    await logAction("Admin inicial inició sesión");
+                    return;
                 }
                 const teacherDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id));
                 if (teacherDoc.exists()) {
                     loggedTeacher = { id: teacherDoc.id, ...teacherDoc.data() };
                     enterApp();
+                    await logAction(`Docente ${loggedTeacher.nombre} inició sesión`);
                 } else {
                     document.getElementById('login-error').classList.remove('hidden');
                     playErrorSound();
@@ -545,7 +609,8 @@
         };
 
         window.logout = async () => {
-            showModalMsg("Cerrar Sesión", "¿Desea salir?", () => {
+            showModalMsg("Cerrar Sesión", "¿Desea salir?", async () => {
+                await logAction("Cierre de sesión");
                 loggedTeacher = null;
                 const li = document.getElementById('input-login-id'); if(li) li.value = '';
                 document.getElementById('main-header').classList.add('hidden');
@@ -564,7 +629,7 @@
         };
 
         window.switchSubTab = (subtab) => {
-            ['asistencia', 'mantenimiento'].forEach(s => {
+            ['asistencia', 'mantenimiento', 'historial'].forEach(s => {
                 const el = document.getElementById('subcontent-' + s);
                 const btn = document.getElementById('subtab-' + s);
                 if(el) el.classList.add('hidden');
@@ -572,11 +637,12 @@
             });
             const sel = document.getElementById('subcontent-' + subtab); if(sel) sel.classList.remove('hidden');
             const sbt = document.getElementById('subtab-' + subtab); if(sbt) sbt.classList.add('subtab-active');
+            
+            document.getElementById('general-table-container').classList.add('hidden');
+            document.getElementById('attendance-report-container').classList.add('hidden');
+
             if (subtab === 'mantenimiento') window.switchMaintCategory('registros');
-            else {
-                document.getElementById('attendance-report-container').classList.add('hidden');
-                document.getElementById('general-table-container').classList.add('hidden');
-            }
+            else if (subtab === 'historial') listenToHistorial();
         };
 
         window.switchMaintCategory = (cat) => {
@@ -631,6 +697,7 @@
             if (!id || !nombre) return showModalMsg("Aviso", "Complete los campos.");
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id), { nombre, createdAt: serverTimestamp() });
+                await logAction(`Alumno agregado: ${nombre} (${id})`);
                 document.getElementById('input-id').value = ''; document.getElementById('input-name').value = '';
                 await loadStudents(); showModalMsg("Éxito", "Alumno guardado.");
             } catch(e) {}
@@ -644,9 +711,78 @@
             if (!id || !nombre) return showModalMsg("Aviso", "Faltan datos.");
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id), { nombre, materia, esAdmin, createdAt: serverTimestamp() });
+                await logAction(`Maestro agregado: ${nombre} (${id}) - Rol: ${esAdmin?'Admin':'Docente'}`);
                 document.getElementById('input-maestro-id').value = ''; document.getElementById('input-maestro-name').value = '';
                 await loadTeachers(); await checkAdminLockStatus(); showModalMsg("Éxito", "Maestro guardado.");
             } catch(e) {}
+        };
+
+        window.editStudent = (id) => {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+            const container = document.getElementById('edit-modal-body');
+            container.innerHTML = `
+                <div class="bg-amber-50 p-3 rounded-lg border border-amber-200 mb-2">
+                    <p class="text-[10px] font-bold text-amber-700 uppercase"><i class="fas fa-exclamation-triangle"></i> Aviso</p>
+                    <p class="text-[9px] text-amber-600 italic">Si cambia el ID, deberá imprimir un nuevo QR.</p>
+                </div>
+                <div><label class="text-[10px] font-bold text-slate-400 uppercase">ID Alumno</label><input id="edit-id" type="text" value="${student.id}" class="w-full px-4 py-2 border rounded-lg font-bold uppercase text-[#0e5b2f]"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Nombre Completo</label><input id="edit-nombre" type="text" value="${student.nombre}" class="w-full px-4 py-2 border rounded-lg uppercase"></div>
+            `;
+            document.getElementById('btn-save-edit').onclick = () => saveStudentEdit(id);
+            document.getElementById('edit-modal').classList.remove('hidden');
+        };
+
+        const saveStudentEdit = async (oldId) => {
+            const newId = document.getElementById('edit-id').value.trim().toUpperCase();
+            const nombre = document.getElementById('edit-nombre').value.trim().toUpperCase();
+            if (!newId || !nombre) return;
+            try {
+                if (newId !== oldId) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', newId), { nombre, createdAt: serverTimestamp() });
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', oldId));
+                    await logAction(`ID de Alumno cambiado: ${oldId} -> ${newId} (${nombre})`);
+                } else {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', oldId), { nombre });
+                    await logAction(`Nombre de Alumno editado: ${oldId} -> ${nombre}`);
+                }
+                window.closeEditModal(); await loadStudents();
+                showModalMsg("Éxito", "Alumno actualizado correctamente.");
+            } catch(e) { console.error(e); }
+        };
+
+        window.editTeacher = (id) => {
+            const teacher = teachers.find(t => t.id === id);
+            if (!teacher) return;
+            const container = document.getElementById('edit-modal-body');
+            container.innerHTML = `
+                <div><label class="text-[10px] font-bold text-slate-400 uppercase">ID Maestro</label><input id="edit-maestro-id" type="text" value="${teacher.id}" class="w-full px-4 py-2 border rounded-lg font-bold uppercase text-slate-900"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Nombre</label><input id="edit-maestro-nombre" type="text" value="${teacher.nombre}" class="w-full px-4 py-2 border rounded-lg uppercase"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Materia</label><input id="edit-maestro-materia" type="text" value="${teacher.materia || ''}" class="w-full px-4 py-2 border rounded-lg uppercase"></div>
+                <label class="flex items-center gap-2 mt-2"><input id="edit-maestro-admin" type="checkbox" ${teacher.esAdmin?'checked':''}> <span class="text-xs font-bold uppercase">Es Administrador</span></label>
+            `;
+            document.getElementById('btn-save-edit').onclick = () => saveTeacherEdit(id);
+            document.getElementById('edit-modal').classList.remove('hidden');
+        };
+
+        const saveTeacherEdit = async (oldId) => {
+            const newId = document.getElementById('edit-maestro-id').value.trim().toUpperCase();
+            const nombre = document.getElementById('edit-maestro-nombre').value.trim().toUpperCase();
+            const materia = document.getElementById('edit-maestro-materia').value.trim().toUpperCase();
+            const esAdmin = document.getElementById('edit-maestro-admin').checked;
+            if (!newId || !nombre) return;
+            try {
+                const data = { nombre, materia, esAdmin };
+                if (newId !== oldId) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', newId), data);
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', oldId));
+                    await logAction(`ID de Maestro cambiado: ${oldId} -> ${newId} (${nombre})`);
+                } else {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', oldId), data);
+                    await logAction(`Maestro editado: ${oldId} (${nombre})`);
+                }
+                window.closeEditModal(); await loadTeachers(); checkAdminLockStatus();
+            } catch(e) { console.error(e); }
         };
 
         window.generateAttendanceReport = async () => {
@@ -679,6 +815,7 @@
                 document.getElementById('general-table-container').classList.add('hidden');
                 const area = document.getElementById('print-content');
                 area.innerHTML = `<div class="p-8"><div class="flex items-center justify-between mb-8 border-b-2 border-slate-900 pb-4 uppercase leading-none"><h1 class="text-2xl font-bold text-[#0e5b2f]">Colegio Xochicalli</h1><img src="logo.png" class="h-14" onerror="this.style.display='none'"></div><div class="mb-4 space-y-1"><p class="text-xs font-bold uppercase">PROFESOR: <span class="font-normal">${loggedTeacher.nombre}</span></p><p class="text-xs font-bold uppercase">PERIODO: <span class="font-normal">${from} al ${to}</span></p></div><table class="master-list-table"><thead><tr><th class="text-center w-8">#</th><th>Alumno</th>${uniqueDates.map(d => `<th class="text-center">${d.substring(5)}</th>`).join('')}<th class="text-center font-bold">Total</th></tr></thead><tbody>${filtered.map((s, i) => { let t = 0; const marks = uniqueDates.map(d => { const p = presentIdsByDate[d]?.has(s.id); if(p) t++; return `<td class="text-center">${p?'✓':'X'}</td>`; }).join(''); return `<tr><td class="text-center">${i + 1}</td><td class="uppercase font-bold">${s.nombre}</td>${marks}<td class="text-center font-bold">${t}</td></tr>`; }).join('')}</tbody></table></div>`;
+                await logAction(`Reporte generado: Grupo ${group} (${from} al ${to})`);
             } catch(e) {}
         };
 
@@ -692,6 +829,7 @@
             const link = document.createElement("a");
             link.setAttribute("href", URL.createObjectURL(new Blob([csv], { type: 'text/csv' })));
             link.setAttribute("download", `Catalogo_Alumnos_${getMexicoDate()}.csv`); link.click();
+            await logAction("Exportación de catálogo de alumnos realizada");
         };
 
         window.handleCSVUpload = async (e) => {
@@ -709,7 +847,9 @@
                             try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id), { nombre, createdAt: serverTimestamp() }); count++; } catch (err) {}
                         }
                     }
-                    await loadStudents(); showModalMsg("Éxito", `Se han cargado ${count} alumnos correctamente.`);
+                    await loadStudents(); 
+                    await logAction(`Importación masiva: ${count} alumnos cargados`);
+                    showModalMsg("Éxito", `Se han cargado ${count} alumnos correctamente.`);
                     e.target.value = '';
                 }
             });
@@ -725,6 +865,7 @@
                 try {
                     const snap = await getDocs(asistenciasColl); let count = 0;
                     for (const d of snap.docs) if (d.data().fecha >= f && d.data().fecha <= t) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'asistencias', d.id)); count++; }
+                    await logAction(`Borrado de asistencias: ${count} registros eliminados (${f} al ${t})`);
                     showModalMsg("Éxito", `Se eliminaron ${count} registros.`);
                 } catch (e) {} finally { if(btn) { btn.disabled = false; btn.innerText = "Eliminar asistencias"; } }
             }, true);
@@ -732,6 +873,7 @@
 
         window.confirmResetSystem = () => { 
             showModalMsg("VACIAR SISTEMA", "Se borrará TODO de la nube.", async () => {
+                await logAction("REINICIO TOTAL DEL SISTEMA REALIZADO");
                 const as = await getDocs(asistenciasColl); for (const d of as.docs) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'asistencias', d.id));
                 const al = await getDocs(alumnosColl); for (const d of al.docs) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', d.id));
                 const ma = await getDocs(maestrosColl); for (const d of ma.docs) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', d.id));
@@ -746,11 +888,111 @@
         };
         window.closeModal = () => document.getElementById('qr-modal').classList.add('hidden');
         window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
-        window.confirmDeleteStudent = (id) => showModalMsg("Borrar Alumno", `¿Eliminar ${id}?`, async () => { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id)); loadStudents(); }, true);
-        window.confirmDeleteTeacher = (id) => showModalMsg("Borrar Maestro", `¿Eliminar ${id}?`, async () => { if(id===loggedTeacher.id) return; await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id)); loadTeachers(); checkAdminLockStatus(); }, true);
+        window.confirmDeleteStudent = (id) => showModalMsg("Borrar Alumno", `¿Eliminar ${id}?`, async () => { 
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id)); 
+            await logAction(`Alumno eliminado: ${id}`);
+            loadStudents(); 
+        }, true);
+        window.confirmDeleteTeacher = (id) => showModalMsg("Borrar Maestro", `¿Eliminar ${id}?`, async () => { 
+            if(id===loggedTeacher.id) return; 
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id)); 
+            await logAction(`Maestro eliminado: ${id}`);
+            loadTeachers(); checkAdminLockStatus(); 
+        }, true);
+        
         window.toggleCamera = async () => { initAudio(); if (isScannerRunning) await stopScanner(); else await initScanner(); };
-        window.printMasterList = async () => { if (students.length === 0) return; showModalMsg("Generando reporte", "Preparando lista maestra..."); const area = document.getElementById('print-content'); const cID = document.getElementById('check-id').checked; const cName = document.getElementById('check-nombre').checked; const cQR = document.getElementById('check-qr').checked; area.innerHTML = `<div class="p-8"><div class="flex items-center justify-between mb-8 border-b-2 border-slate-900 pb-4 uppercase leading-none"><h1 class="text-2xl font-bold text-[#0e5b2f]">Colegio Xochicalli</h1><img src="logo.png" class="h-14" onerror="this.style.display='none'"></div><h2 class="text-center font-bold mb-4 uppercase underline">Lista Maestra</h2><table class="master-list-table"><thead><tr>${cID?'<th>ID</th>':''}${cName?'<th>Nombre</th>':''}${cQR?'<th class="text-center">QR</th>':''}</tr></thead><tbody id="print-master-body"></tbody></table></div>`; const tbody = document.getElementById('print-master-body'); const sorted = [...students].sort((a,b) => a.id.localeCompare(b.id)); for (const s of sorted) { const tr = document.createElement('tr'); tr.innerHTML = `${cID?`<td>${s.id}</td>`:''}${cName?`<td class="uppercase font-bold">${s.nombre}</td>`:''}${cQR?`<td class="text-center py-2"><div id="qr-mini-${s.id}" class="qr-wrapper flex justify-center"></div></td>`:''}`; tbody.appendChild(tr); } if(cQR) { for (const s of sorted) { const el = document.getElementById(`qr-mini-${s.id}`); if(el) await generateQRAsync(el, s.id, 65); } } setTimeout(() => window.print(), 1200); };
-        window.printAllQRs = async () => { if (students.length === 0) return; showModalMsg("Generando reporte", "Generando gafetes..."); const area = document.getElementById('print-content'); area.innerHTML = `<div class="p-4"><h1 class="text-xl font-bold text-center border-b mb-6 pb-2 uppercase text-[#0e5b2f]">Catálogo QR</h1><div id="print-qr-grid" class="qr-grid"></div></div>`; const grid = document.getElementById('print-qr-grid'); const sorted = [...students].sort((a,b) => a.id.localeCompare(b.id)); for (const s of sorted) { const card = document.createElement('div'); card.className = "flex flex-col items-center p-3 border rounded text-center"; card.style.pageBreakInside = "avoid"; card.innerHTML = `<p class="text-[8px] font-bold uppercase border-b w-full mb-2 font-bold text-[#0e5b2f]">Colegio Xochicalli</p><div id="pqr-${s.id}" class="qr-wrapper my-2 mx-auto"></div><h4 class="text-[9px] font-bold uppercase truncate w-full mb-1 font-semibold text-[#0e5b2f]">${s.nombre}</h4><p class="text-[10px] font-mono font-bold bg-slate-50 border w-full rounded py-0.5 mt-1 text-[#e96925]">${s.id}</p>`; grid.appendChild(card); } for (const s of sorted) { const el = document.getElementById(`pqr-${s.id}`); if(el) await generateQRAsync(el, s.id, 115); } setTimeout(() => window.print(), 1500); };
+        
+        window.printMasterList = async () => { 
+            if (students.length === 0) return; 
+            showModalMsg("Generando reporte", "Preparando lista maestra..."); 
+            const area = document.getElementById('print-content'); 
+            const cID = document.getElementById('check-id').checked; 
+            const cName = document.getElementById('check-nombre').checked; 
+            const cQR = document.getElementById('check-qr').checked; 
+            
+            // Forzamos visibilidad de print-area temporalmente para asegurar renderizado en PC
+            document.getElementById('print-area').style.display = 'block';
+            
+            area.innerHTML = `<div class="p-8"><div class="flex items-center justify-between mb-8 border-b-2 border-slate-900 pb-4 uppercase leading-none"><h1 class="text-2xl font-bold text-[#0e5b2f]">Colegio Xochicalli</h1><img src="logo.png" class="h-14" onerror="this.style.display='none'"></div><h2 class="text-center font-bold mb-4 uppercase underline">Lista Maestra</h2><table class="master-list-table"><thead><tr>${cID?'<th>ID</th>':''}${cName?'<th>Nombre</th>':''}${cQR?'<th class="text-center">QR</th>':''}</tr></thead><tbody id="print-master-body"></tbody></table></div>`; 
+            const tbody = document.getElementById('print-master-body'); 
+            const sorted = [...students].sort((a,b) => a.id.localeCompare(b.id)); 
+            for (const s of sorted) { 
+                const tr = document.createElement('tr'); 
+                tr.innerHTML = `${cID?`<td>${s.id}</td>`:''}${cName?`<td class="uppercase font-bold">${s.nombre}</td>`:''}${cQR?`<td class="text-center py-2"><div id="qr-mini-${s.id}" class="qr-wrapper flex justify-center"></div></td>`:''}`; 
+                tbody.appendChild(tr); 
+            } 
+            if(cQR) { 
+                for (const s of sorted) { 
+                    const el = document.getElementById(`qr-mini-${s.id}`); 
+                    if(el) await generateQRAsync(el, s.id, 65); 
+                } 
+            } 
+            
+            // Pequeña espera para que el DOM se asiente en PC antes de llamar a window.print()
+            setTimeout(() => { 
+                window.print(); 
+                document.getElementById('custom-modal').classList.add('hidden');
+                document.getElementById('print-area').style.display = ''; // Restauramos estilo original
+            }, 1000); 
+        };
+
+        window.printAllQRs = async () => { 
+            if (students.length === 0) return; 
+            showModalMsg("Generando reporte", "Generando gafetes..."); 
+            const area = document.getElementById('print-content'); 
+            
+            document.getElementById('print-area').style.display = 'block';
+            
+            area.innerHTML = `<div class="p-4"><h1 class="text-xl font-bold text-center border-b mb-6 pb-2 uppercase text-[#0e5b2f]">Catálogo QR</h1><div id="print-qr-grid" class="qr-grid"></div></div>`; 
+            const grid = document.getElementById('print-qr-grid'); 
+            const sorted = [...students].sort((a,b) => a.id.localeCompare(b.id)); 
+            for (const s of sorted) { 
+                const card = document.createElement('div'); 
+                card.className = "flex flex-col items-center p-3 border rounded text-center"; 
+                card.style.pageBreakInside = "avoid"; 
+                card.innerHTML = `<p class="text-[8px] font-bold uppercase border-b w-full mb-2 font-bold text-[#0e5b2f]">Colegio Xochicalli</p><div id="pqr-${s.id}" class="qr-wrapper my-2 mx-auto"></div><h4 class="text-[9px] font-bold uppercase truncate w-full mb-1 font-semibold text-[#0e5b2f]">${s.nombre}</h4><p class="text-[10px] font-mono font-bold bg-slate-50 border w-full rounded py-0.5 mt-1 text-[#e96925]">${s.id}</p>`; 
+                grid.appendChild(card); 
+            } 
+            for (const s of sorted) { 
+                const el = document.getElementById(`pqr-${s.id}`); 
+                if(el) await generateQRAsync(el, s.id, 115); 
+            } 
+            
+            setTimeout(() => { 
+                window.print(); 
+                document.getElementById('custom-modal').classList.add('hidden');
+                document.getElementById('print-area').style.display = '';
+            }, 1200); 
+        };
+
+        function listenToHistorial() {
+            if (!currentUser || loggedTeacher.id !== 'TLAHUISCALPANTECUTLI') return;
+            onSnapshot(historialColl, (snap) => {
+                const body = document.getElementById('history-table-body');
+                if(!body) return;
+                const logs = snap.docs.map(d => d.data()).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                if (logs.length === 0) {
+                    body.innerHTML = `<tr><td colspan="3" class="px-6 py-8 text-center text-slate-400 italic">No hay historial registrado</td></tr>`;
+                    return;
+                }
+                body.innerHTML = logs.map(l => `
+                    <tr>
+                        <td class="px-6 py-3 font-mono text-slate-500">${l.fecha} ${l.hora}</td>
+                        <td class="px-6 py-3 font-bold uppercase text-indigo-700">${l.usuario}</td>
+                        <td class="px-6 py-3 text-slate-600 font-medium">${l.descripcion}</td>
+                    </tr>
+                `).join('');
+            });
+        }
+
+        window.confirmResetHistory = () => {
+            showModalMsg("Reiniciar Historial", "¿Eliminar permanentemente todos los registros de la bitácora?", async () => {
+                const snap = await getDocs(historialColl);
+                for (const d of snap.docs) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'historial', d.id));
+                await logAction("HISTORIAL REINICIADO");
+                showModalMsg("Éxito", "Bitácora vaciada correctamente.");
+            }, true);
+        };
 
         window.init = init;
         init();
