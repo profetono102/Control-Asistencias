@@ -10,7 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Mba'ereta kora sa'y */
         :root {
             --primary-green: #0e5b2f;
             --accent-orange: #e96925;
@@ -68,6 +67,23 @@
                 -webkit-print-color-adjust: exact; 
                 margin: 0; 
                 padding: 0; 
+            }
+
+            .master-list-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+                font-size: 8pt;
+            }
+            .master-list-table th, .master-list-table td {
+                border: 0.5pt solid black;
+                padding: 3px;
+                text-align: left;
+                text-transform: uppercase;
+            }
+            .master-list-table th {
+                background-color: #f0f0f0 !important;
+                font-weight: bold;
             }
         }
 
@@ -232,7 +248,6 @@
                 <button onclick="window.switchSubTab('historial')" id="subtab-historial" class="hidden px-4 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold shadow-sm transition-all hover:bg-slate-50 text-indigo-600 uppercase"><i class="fas fa-history mr-1"></i>Historial</button>
             </div>
 
-            <!-- ASISTENCIA -->
             <div id="subcontent-asistencia" class="hidden space-y-4">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-end shadow-sm">
                     <div class="flex-1 min-w-[140px]">
@@ -270,12 +285,12 @@
                         </div>
                         <div class="grid grid-cols-2 gap-8 mb-8">
                             <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Profesor</p>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Consultado por:</p>
                                 <p id="report-teacher-name" class="text-sm font-black text-slate-700 uppercase">--</p>
                             </div>
                             <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Materia</p>
-                                <p id="report-subject-name" class="text-sm font-black text-slate-700 uppercase">--</p>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Rango de Fechas:</p>
+                                <p id="report-date-range" class="text-sm font-black text-slate-700 uppercase">--</p>
                             </div>
                         </div>
                         <div class="overflow-x-auto rounded-lg border border-slate-200">
@@ -288,7 +303,6 @@
                 </div>
             </div>
 
-            <!-- MANTENIMIENTO -->
             <div id="subcontent-mantenimiento" class="hidden space-y-6">
                 <div class="flex gap-4 border-b border-slate-200 pb-2">
                     <button onclick="window.switchMaintCategory('registros')" id="maint-cat-registros" class="maint-cat-btn pb-2 px-4 text-xs font-bold uppercase border-b-2 border-transparent transition-all">Registros</button>
@@ -342,11 +356,9 @@
 
                 <div id="innercontent-impresion" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 text-center shadow-sm">
-                        <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2">Catálogo Completo (3x3)</h3>
-                        <p class="text-[10px] text-slate-400 italic">Imprime todos los alumnos (9 por hoja carta).</p>
-                        <button onclick="window.printAllQRs()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-900 transition-all uppercase text-xs shadow-md">Imprimir Todo</button>
+                        <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2">Catálogo Completo</h3>
+                        <button onclick="window.printAllQRs()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-900 transition-all uppercase text-xs shadow-md">Imprimir Todo (9xHoja)</button>
                     </div>
-                    
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 text-center shadow-sm">
                         <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2">Imprimir por Grupo</h3>
                         <select id="select-print-group" class="w-full px-3 py-2 border rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#e96925] uppercase font-bold">
@@ -355,14 +367,12 @@
                         </select>
                         <button onclick="window.printGroupByQR()" class="w-full bg-[#0e5b2f] text-white font-bold py-3 rounded-lg hover:opacity-90 transition-all uppercase text-xs shadow-md">Imprimir Grupo</button>
                     </div>
-
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 shadow-sm flex flex-col">
                         <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2 text-center">Selección Manual</h3>
                         <input type="text" id="search-print-student" placeholder="BUSCAR ALUMNO..." onkeyup="window.filterPrintSelection()" class="w-full px-3 py-2 border rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#e96925] uppercase font-bold">
                         <div id="print-selection-list" class="selection-list-container flex-1 divide-y divide-slate-100 mt-2"></div>
                         <button onclick="window.printSelectedQRs()" class="w-full mt-4 bg-[#e96925] text-white font-bold py-3 rounded-lg hover:opacity-90 transition-all uppercase text-xs shadow-md">Imprimir Selección</button>
                     </div>
-                    
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 shadow-sm">
                         <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2 text-center">Lista Maestra</h3>
                         <div class="flex flex-wrap gap-4 bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2 text-center justify-center">
@@ -380,7 +390,6 @@
                         <button onclick="window.switchSystemSubTab('recuperar')" id="sys-tab-recuperar" class="sys-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all hidden">Recuperar Acceso</button>
                         <button onclick="window.switchSystemSubTab('limpieza')" id="sys-tab-limpieza" class="sys-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all">Limpieza</button>
                     </div>
-
                     <div id="sys-content-borrar" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 max-w-md">
                         <h3 class="font-bold text-red-600 text-xs uppercase border-b pb-2">Borrar Asistencias</h3>
                         <div class="grid grid-cols-2 gap-2">
@@ -389,10 +398,9 @@
                         </div>
                         <button id="btn-clear-database" onclick="window.confirmClearAttendance()" class="w-full bg-red-600 text-white font-bold py-2 rounded-lg hover:bg-red-700 transition-all text-[10px] uppercase shadow-md">Eliminar asistencias</button>
                     </div>
-
                     <div id="sys-content-recuperar" class="hidden space-y-4">
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                            <h3 class="font-bold text-indigo-700 text-xs uppercase border-b pb-2 mb-4">Panel de Recuperación de IDs</h3>
+                            <h3 class="font-bold text-indigo-700 text-xs uppercase border-b pb-2 mb-4">Recuperación de IDs</h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left">
                                     <thead class="bg-slate-50 text-[9px] uppercase font-black text-slate-400 border-b">
@@ -403,7 +411,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div id="sys-content-limpieza" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 max-w-md text-center">
                         <h3 class="font-bold text-red-600 text-xs uppercase border-b pb-2 tracking-widest uppercase text-center">Limpieza de Sistema</h3>
                         <button onclick="window.confirmResetSystem()" class="w-full bg-red-800 text-white font-bold py-2 rounded-lg shadow-lg hover:bg-red-900 transition-all text-[10px] uppercase">VACIAR TODO EL SISTEMA</button>
@@ -411,7 +418,6 @@
                 </div>
             </div>
 
-            <!-- HISTORIAL -->
             <div id="subcontent-historial" class="hidden space-y-4">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
                     <h3 class="font-bold text-indigo-900 uppercase text-xs"><i class="fas fa-list-ul mr-1"></i> Bitácora de Acciones</h3>
@@ -431,10 +437,9 @@
                 </div>
             </div>
 
-            <!-- TABLA GENERAL -->
             <div id="general-table-container" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden shadow-md">
                 <div id="table-title" class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 id="table-title-text" class="font-bold text-[#0e5b2f] uppercase tracking-tighter text-xs">Datos</h3>
+                    <h3 id="table-title-text" class="font-bold text-[#0e5b2f] uppercase tracking-tighter text-xs">Datos del Personal</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
@@ -445,12 +450,11 @@
             </div>
         </section>
 
-        <!-- SCANNER -->
         <section id="section-scanner" class="space-y-6">
             <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
                 <div class="bg-[#0e5b2f] p-4 text-white text-center">
                     <h2 class="text-lg font-semibold uppercase tracking-wide">Pase de Lista QR</h2>
-                    <p id="current-materia-label" class="text-xs opacity-80 uppercase font-bold text-[#e96925]">MATERIA...</p>
+                    <p id="current-materia-label" class="text-xs opacity-80 uppercase font-bold text-[#e96925]">CONTROL ESCOLAR</p>
                 </div>
                 <div class="p-4 space-y-4">
                     <div id="qr-reader-container" class="relative">
@@ -520,18 +524,27 @@
         const getMexicoDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City' }).format(new Date());
         const getMexicoTime = () => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
 
-        const logAction = async (description) => {
+        /* FUNCIONES DE UTILIDAD (Hoisted) */
+        async function checkAdminLockStatus() {
+            try {
+                const snap = await getDocs(maestrosColl); const hint = document.getElementById('admin-hint');
+                if (snap.empty && hint) hint.classList.remove('hidden');
+                else if (hint) hint.classList.add('hidden');
+            } catch (e) {}
+        }
+
+        async function logAction(description) {
             if (!loggedTeacher) return;
             try { await addDoc(historialColl, { usuario: loggedTeacher.nombre, usuarioId: loggedTeacher.id, fecha: getMexicoDate(), hora: getMexicoTime(), descripcion: description, timestamp: serverTimestamp() }); } catch (e) {}
-        };
+        }
 
-        const showStatus = (m, y) => {
+        function showStatus(m, y) {
             const e = document.getElementById('scan-status'); if (!e) return;
             e.innerText = m; e.className = `p-4 rounded-lg text-center font-bold block ${y === 'success' ? 'bg-green-100 text-green-700' : (y === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700')}`;
             e.classList.remove('hidden');
-        };
+        }
 
-        const showModalMsg = (title, message, callback = null, isConfirm = false) => {
+        function showModalMsg(title, message, callback = null, isConfirm = false) {
             const modal = document.getElementById('custom-modal'); if(!modal) return;
             document.getElementById('modal-msg-title').innerText = title; document.getElementById('modal-msg-body').innerText = message;
             const btnCancel = document.getElementById('btn-modal-cancel'); const btnConfirm = document.getElementById('btn-modal-confirm');
@@ -541,10 +554,10 @@
             const cleanup = () => modal.classList.add('hidden');
             btnConfirmClone.addEventListener('click', () => { cleanup(); if (callback) callback(); });
             if(isConfirm) btnCancelClone.addEventListener('click', cleanup);
-        };
+        }
 
-        const initAudio = () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); };
-        const playSuccessSound = () => { 
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playSuccessSound() { 
             initAudio(); const playTone = (time) => {
                 const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
                 osc.connect(gainNode); gainNode.connect(audioCtx.destination); 
@@ -553,22 +566,14 @@
                 osc.start(time); osc.stop(time + 0.15);
             };
             playTone(audioCtx.currentTime); playTone(audioCtx.currentTime + 0.2);
-        };
-        const playErrorSound = () => { 
+        }
+        function playErrorSound() { 
             initAudio(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
             osc.connect(gainNode); gainNode.connect(audioCtx.destination); osc.type = 'square'; 
             osc.frequency.setValueAtTime(120, audioCtx.currentTime); gainNode.gain.setValueAtTime(0, audioCtx.currentTime); 
             gainNode.gain.linearRampToValueAtTime(0.7, audioCtx.currentTime + 0.1); gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4); 
             osc.start(); osc.stop(audioCtx.currentTime + 0.4); 
-        };
-
-        const checkAdminLockStatus = async () => {
-            try {
-                const snap = await getDocs(maestrosColl); const hint = document.getElementById('admin-hint');
-                if (snap.empty && hint) hint.classList.remove('hidden');
-                else if (hint) hint.classList.add('hidden');
-            } catch (e) {}
-        };
+        }
 
         async function init() {
             const initAuth = async () => {
@@ -586,10 +591,11 @@
                 }
             });
             const today = getMexicoDate();
-            const df = document.getElementById('date-from'); if(df) df.value = today;
-            const dt = document.getElementById('date-to'); if(dt) dt.value = today;
+            document.getElementById('date-from').value = today;
+            document.getElementById('date-to').value = today;
         }
 
+        /* LOGICA DE NEGOCIO */
         async function loadStudents() {
             if (!currentUser) return;
             try {
@@ -625,33 +631,12 @@
             }
         }
 
-        const renderRecoveryTable = () => {
+        function renderRecoveryTable() {
             const body = document.getElementById('recovery-table-body'); if(!body) return;
             const list = teachers.filter(t => t.id !== 'TLAHUISCALPANTECUTLI');
             if (list.length === 0) { body.innerHTML = `<tr><td colspan="3" class="p-8 text-center italic text-slate-400">No hay maestros registrados</td></tr>`; return; }
-            body.innerHTML = list.map(t => `
-                <tr>
-                    <td class="px-4 py-3 font-bold uppercase">${t.nombre}</td>
-                    <td class="px-4 py-3 font-mono text-[#0e5b2f] font-bold">${t.id}</td>
-                    <td class="px-4 py-3 text-center">
-                        <button onclick="window.confirmResetTeacherAccount('${t.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-red-200">Reiniciar Cuenta</button>
-                    </td>
-                </tr>`).join('');
-        };
-
-        window.confirmResetTeacherAccount = (id) => {
-            showModalMsg("Reiniciar Seguridad", `¿Desea invalidar el ID actual de este docente y asignar uno temporal?`, () => {
-                const tempId = "TEMP_" + Math.floor(Math.random()*10000);
-                showModalMsg("Nuevo ID Temporal", `El nuevo ID para el docente es: ${tempId}. El docente deberá personalizarlo al entrar.`, async () => {
-                    const tData = teachers.find(t => t.id === id);
-                    const newData = { ...tData, idCambiado: false }; delete newData.id;
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', tempId), newData);
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id));
-                    await logAction(`Cuenta de maestro reiniciada (ID olvidado: ${id} -> Nuevo temporal: ${tempId})`);
-                    await loadTeachers();
-                });
-            }, true);
-        };
+            body.innerHTML = list.map(t => `<tr><td class="px-4 py-3 font-bold uppercase">${t.nombre}</td><td class="px-4 py-3 font-mono text-[#0e5b2f] font-bold">${t.id}</td><td class="px-4 py-3 text-center"><button onclick="window.confirmResetTeacherAccount('${t.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-red-200">Reiniciar</button></td></tr>`).join('');
+        }
 
         async function initScanner() { if (isScannerRunning || isScannerTransitioning) return; isScannerTransitioning = true; if (!html5QrScanner) html5QrScanner = new Html5Qrcode("qr-reader"); try { await html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess); isScannerRunning = true; updateScannerUI(true); } catch (err) {} finally { isScannerTransitioning = false; } }
         async function stopScanner() { if (!isScannerRunning || isScannerTransitioning) return; isScannerTransitioning = true; try { await html5QrScanner.stop(); isScannerRunning = false; updateScannerUI(false); } catch (err) {} finally { isScannerTransitioning = false; } }
@@ -670,6 +655,22 @@
             }); 
         }
 
+        async function onScanSuccess(t) {
+            if (!currentUser || !loggedTeacher) return;
+            try { await html5QrScanner.pause(); } catch(e) {}
+            if (scannedTodayIds.has(t)) { playErrorSound(); showStatus(`YA REGISTRADO POR USTED HOY: ${t}`, "warning"); }
+            else {
+                try {
+                    const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', t));
+                    if (snap.exists()) {
+                        await addDoc(asistenciasColl, { alumnoId: t, nombre: snap.data().nombre, profesorId: loggedTeacher.id, profesorNombre: loggedTeacher.nombre, fecha: getMexicoDate(), hora: getMexicoTime(), timestamp: serverTimestamp() });
+                        await logAction(`Pase de lista: ${snap.data().nombre}`); playSuccessSound(); showStatus(`REGISTRADO: ${snap.data().nombre}`, "success");
+                    } else { playErrorSound(); showStatus("NO REGISTRADO", "error"); }
+                } catch (e) {}
+            }
+            setTimeout(async () => { if (isScannerRunning) try { await html5QrScanner.resume(); } catch(e) {} const st = document.getElementById('scan-status'); if(st) st.classList.add('hidden'); }, 2000);
+        }
+
         function enterApp() {
             document.getElementById('section-login').style.display = 'none';
             document.getElementById('main-header').classList.remove('hidden');
@@ -677,11 +678,7 @@
             const nEl = document.getElementById('user-display-name'); const rEl = document.getElementById('user-display-role');
             if(nEl) nEl.innerText = loggedTeacher.nombre;
             if(rEl) rEl.innerText = loggedTeacher.id === 'TLAHUISCALPANTECUTLI' ? 'SUPERUSUARIO' : (loggedTeacher.esAdmin ? 'ADMINISTRADOR' : 'DOCENTE');
-            
-            if(loggedTeacher.id !== 'ADMIN' && loggedTeacher.id !== 'TLAHUISCALPANTECUTLI' && !loggedTeacher.idCambiado) {
-                document.getElementById('forced-id-modal').classList.remove('hidden');
-            }
-
+            if(loggedTeacher.id !== 'ADMIN' && loggedTeacher.id !== 'TLAHUISCALPANTECUTLI' && !loggedTeacher.idCambiado) document.getElementById('forced-id-modal').classList.remove('hidden');
             document.getElementById('tab-admin').classList.remove('hidden');
             const sM = document.getElementById('subtab-mantenimiento'); const sH = document.getElementById('subtab-historial');
             if (loggedTeacher.esAdmin) sM.classList.remove('hidden'); else sM.classList.add('hidden');
@@ -689,20 +686,32 @@
             loadStudents(); loadTeachers(); listenToAttendanceToday(); window.switchTab('scanner');
         }
 
+        /* ASIGNACIONES WINDOW */
+        window.confirmResetTeacherAccount = (id) => {
+            showModalMsg("Reiniciar Seguridad", `¿Desea invalidar el ID de este docente?`, () => {
+                const tempId = "TEMP_" + Math.floor(Math.random()*10000);
+                showModalMsg("ID Temporal", `El nuevo ID es: ${tempId}. Deberá cambiarlo al entrar.`, async () => {
+                    const tData = teachers.find(t => t.id === id);
+                    const newData = { ...tData, idCambiado: false }; delete newData.id;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', tempId), newData);
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id));
+                    await logAction(`Cuenta reiniciada (ID: ${id} -> ${tempId})`);
+                    await loadTeachers();
+                });
+            }, true);
+        };
+
         window.updateTeacherForcedId = async () => {
             const newId = document.getElementById('input-forced-new-id').value.trim().toUpperCase();
-            if(!newId || newId === loggedTeacher.id) return showModalMsg("Aviso", "Ingrese un ID nuevo y diferente al anterior.");
+            if(!newId || newId === loggedTeacher.id) return showModalMsg("Aviso", "Ingrese un ID nuevo.");
             const btn = document.getElementById('btn-confirm-forced-id'); btn.disabled = true; btn.innerText = "PROCESANDO...";
             try {
                 const checkDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', newId));
-                if(checkDoc.exists()) { btn.disabled = false; btn.innerText = "Actualizar y Entrar"; return showModalMsg("Aviso", "Este ID ya está en uso. Elija otro."); }
+                if(checkDoc.exists()) { btn.disabled = false; btn.innerText = "Actualizar y Entrar"; return showModalMsg("Aviso", "Este ID ya está en uso."); }
                 const oldId = loggedTeacher.id; const newData = { ...loggedTeacher, idCambiado: true }; delete newData.id;
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', newId), newData);
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', oldId));
-                loggedTeacher.id = newId; loggedTeacher.idCambiado = true;
-                await logAction(`ID Personalizado activado: ${newId}`);
-                document.getElementById('forced-id-modal').classList.add('hidden');
-                showModalMsg("Éxito", "Su ID ha sido actualizado correctamente.");
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', newId), newData); await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', oldId));
+                loggedTeacher.id = newId; loggedTeacher.idCambiado = true; await logAction(`ID Personalizado activado: ${newId}`);
+                document.getElementById('forced-id-modal').classList.add('hidden'); showModalMsg("Éxito", "ID actualizado.");
             } catch(e) { btn.disabled = false; btn.innerText = "Actualizar y Entrar"; }
         };
 
@@ -733,11 +742,11 @@
 
         window.switchSubTab = (s) => {
             ['asistencia', 'mantenimiento', 'historial'].forEach(x => {
-                const el = document.getElementById('subcontent-' + x); if(el) el.classList.add('hidden');
+                const sub = document.getElementById('subcontent-' + x); if(sub) sub.classList.add('hidden');
                 const b = document.getElementById('subtab-' + x); if(b) b.classList.remove('subtab-active');
             });
-            document.getElementById('subcontent-' + s).classList.remove('hidden');
-            document.getElementById('subtab-' + s).classList.add('subtab-active');
+            const sel = document.getElementById('subcontent-' + s); if(sel) sel.classList.remove('hidden');
+            const btn = document.getElementById('subtab-' + s); if(btn) btn.classList.add('subtab-active');
             document.getElementById('general-table-container').classList.add('hidden');
             document.getElementById('attendance-report-container').classList.add('hidden');
             if (s === 'mantenimiento') window.switchMaintCategory('registros');
@@ -787,11 +796,11 @@
         window.printGroupByQR = async () => {
             const g = document.getElementById('select-print-group').value.toUpperCase();
             const f = students.filter(s => s.id.substring(0, 2).toUpperCase() === g);
-            if(f.length === 0) return showModalMsg("Aviso", "No hay alumnos en este grupo.");
+            if(f.length === 0) return showModalMsg("Aviso", "No hay alumnos.");
             await performQRPrint(f, `Grupo ${g}`);
         };
 
-        const performQRPrint = async (list, logTag) => {
+        async function performQRPrint(list, logTag) {
             showModalMsg("Generando reporte", `Preparando ${list.length} código(s)...`);
             const area = document.getElementById('print-content'); document.getElementById('print-area').style.display = 'block';
             let html = "";
@@ -803,8 +812,8 @@
             }
             area.innerHTML = html;
             for (const s of list) { const el = document.getElementById(`pqr-${s.id}`); if(el) await generateQRAsync(el, s.id, 280); }
-            setTimeout(() => { window.print(); document.getElementById('custom-modal').classList.add('hidden'); document.getElementById('print-area').style.display = ''; logAction(`Impresión QR ${logTag}: ${list.length} alumnos`); }, 1200);
-        };
+            setTimeout(() => { window.print(); document.getElementById('custom-modal').classList.add('hidden'); document.getElementById('print-area').style.display = ''; logAction(`Impresión QR ${logTag}`); }, 1200);
+        }
 
         window.printAllQRs = async () => { if (students.length === 0) return; await performQRPrint(students, "Total"); };
 
@@ -822,78 +831,8 @@
             setTimeout(() => { window.print(); document.getElementById('custom-modal').classList.add('hidden'); document.getElementById('print-area').style.display = ''; }, 1000); 
         };
 
-        window.switchSystemSubTab = (t) => {
-            currentSysTab = t;
-            document.querySelectorAll('.sys-tab-btn').forEach(b => b.className = "sys-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all text-slate-500");
-            const activeB = document.getElementById('sys-tab-' + t); if(activeB) activeB.className = "sys-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inner-tab-active text-white shadow-sm";
-            ['borrar', 'recuperar', 'limpieza'].forEach(x => { const s = document.getElementById('sys-content-' + x); if(s) s.classList.add('hidden'); });
-            const sel = document.getElementById('sys-content-' + t); if(sel) sel.classList.remove('hidden');
-            if (t === 'recuperar') renderRecoveryTable();
-        };
-
-        window.addStudent = async () => {
-            const id = document.getElementById('input-id').value.trim().toUpperCase();
-            const nombre = document.getElementById('input-name').value.trim().toUpperCase();
-            if (!id || !nombre) return showModalMsg("Aviso", "Complete los campos.");
-            try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id), { nombre, createdAt: serverTimestamp() });
-                await logAction(`Alumno agregado: ${nombre}`); document.getElementById('input-id').value = ''; document.getElementById('input-name').value = '';
-                await loadStudents(); showModalMsg("Éxito", "Alumno guardado.");
-            } catch(e) {}
-        };
-
-        window.addTeacher = async () => {
-            const iE = document.getElementById('input-maestro-id'); const nE = document.getElementById('input-maestro-name');
-            const mE = document.getElementById('input-maestro-materia'); const aE = document.getElementById('input-maestro-admin');
-            const id = iE.value.trim().toUpperCase(); const nombre = nE.value.trim().toUpperCase(); const materia = mE.value.trim().toUpperCase(); const esAdmin = aE.checked;
-            if (!id || !nombre) return showModalMsg("Aviso", "Faltan datos.");
-            try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id), { nombre, materia, esAdmin, idCambiado: false, createdAt: serverTimestamp() });
-                await logAction(`Maestro agregado: ${nombre}`); iE.value = ''; nE.value = ''; mE.value = ''; aE.checked = false;
-                await loadTeachers(); showModalMsg("Éxito", "Maestro guardado.");
-            } catch(e) {}
-        };
-
-        window.editStudent = (id) => {
-            const student = students.find(s => s.id === id); if (!student) return;
-            const container = document.getElementById('edit-modal-body');
-            container.innerHTML = `<div><label class="text-[10px] font-bold text-slate-400 uppercase">ID Alumno</label><input id="edit-id" type="text" value="${student.id}" class="w-full px-4 py-2 border rounded-lg font-bold uppercase text-[#0e5b2f]"></div><div><label class="text-[10px] font-bold text-slate-400 uppercase">Nombre Completo</label><input id="edit-nombre" type="text" value="${student.nombre}" class="w-full px-4 py-2 border rounded-lg uppercase"></div>`;
-            document.getElementById('btn-save-edit').onclick = () => saveStudentEdit(id); document.getElementById('edit-modal').classList.remove('hidden');
-        };
-
-        const saveStudentEdit = async (oldId) => {
-            const newId = document.getElementById('edit-id').value.trim().toUpperCase();
-            const nombre = document.getElementById('edit-nombre').value.trim().toUpperCase();
-            if (!newId || !nombre) return;
-            try {
-                if (newId !== oldId) {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', newId), { nombre, createdAt: serverTimestamp() });
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', oldId));
-                    await logAction(`ID Alumno cambiado: ${oldId} -> ${newId}`);
-                } else { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', oldId), { nombre }); await logAction(`Nombre Alumno editado: ${nombre}`); }
-                window.closeEditModal(); await loadStudents();
-            } catch(e) {}
-        };
-
-        window.editTeacher = (id) => {
-            const t = teachers.find(x => x.id === id); if (!t) return;
-            const container = document.getElementById('edit-modal-body');
-            container.innerHTML = `<div><label class="text-[10px] font-bold text-slate-400 uppercase">ID Maestro</label><input id="edit-maestro-id" type="text" value="${t.id}" class="w-full px-4 py-2 border rounded-lg font-bold uppercase"></div><div><label class="text-[10px] font-bold text-slate-400 uppercase">Nombre</label><input id="edit-maestro-nombre" type="text" value="${t.nombre}" class="w-full px-4 py-2 border rounded-lg uppercase"></div><div><label class="text-[10px] font-bold text-slate-400 uppercase">Materia</label><input id="edit-maestro-materia" type="text" value="${t.materia || ''}" class="w-full px-4 py-2 border rounded-lg uppercase"></div><label class="flex items-center gap-2 mt-2"><input id="edit-maestro-admin" type="checkbox" ${t.esAdmin?'checked':''}> <span class="text-xs font-bold uppercase">Es Administrador</span></label>`;
-            document.getElementById('btn-save-edit').onclick = () => saveTeacherEdit(id); document.getElementById('edit-modal').classList.remove('hidden');
-        };
-
-        const saveTeacherEdit = async (oldId) => {
-            const newId = document.getElementById('edit-maestro-id').value.trim().toUpperCase();
-            const nombre = document.getElementById('edit-maestro-nombre').value.trim().toUpperCase();
-            const materia = document.getElementById('edit-maestro-materia').value.trim().toUpperCase();
-            const esAdmin = document.getElementById('edit-maestro-admin').checked;
-            if (!newId || !nombre) return;
-            try {
-                const data = { nombre, materia, esAdmin };
-                if (newId !== oldId) { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', newId), data); await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', oldId)); }
-                else { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', oldId), data); }
-                window.closeEditModal(); await loadTeachers();
-            } catch(e) {}
+        window.printAttendanceReport = () => {
+            showModalMsg("Preparando Impresión", "Generando el reporte físico. Por favor espere...", () => { window.print(); });
         };
 
         window.generateAttendanceReport = async () => {
@@ -901,23 +840,66 @@
             const to = document.getElementById('date-to').value;
             const group = document.getElementById('select-group').value;
             if (!from || !to) return showModalMsg("Aviso", "Seleccione fechas.");
+            
             try {
-                const snap = await getDocs(asistenciasColl); const logs = snap.docs.map(d => d.data());
+                const snap = await getDocs(asistenciasColl);
+                const logs = snap.docs.map(d => d.data());
                 const filteredLogs = logs.filter(l => l.fecha >= from && l.fecha <= to);
-                const presentIdsByDate = {}; const uniqueDates = Array.from(new Set(filteredLogs.map(l => l.fecha))).sort();
-                filteredLogs.forEach(l => { if(!presentIdsByDate[l.fecha]) presentIdsByDate[l.fecha] = new Set(); presentIdsByDate[l.fecha].add(l.alumnoId); });
+                const presentIdsByDate = {};
+                const uniqueDates = Array.from(new Set(filteredLogs.map(l => l.fecha))).sort();
+                
+                filteredLogs.forEach(l => {
+                    if(!presentIdsByDate[l.fecha]) presentIdsByDate[l.fecha] = new Set();
+                    presentIdsByDate[l.fecha].add(l.alumnoId);
+                });
+
                 let filtered = students.filter(s => group === "all" || s.id.substring(0, 2).toLowerCase() === group);
-                const head = document.getElementById('report-table-head'); const body = document.getElementById('report-table-body');
-                head.innerHTML = `<tr><th class="w-12 text-center">#</th><th>Nombre</th>${uniqueDates.map(d => `<th class="text-center font-mono text-[9px]">${d.substring(5)}</th>`).join('')}<th class="text-center font-bold">TOTAL</th></tr>`;
-                body.innerHTML = filtered.map((s, idx) => {
-                    let studentTotal = 0;
-                    const daysMarkup = uniqueDates.map(d => { 
-                        const p = presentIdsByDate[d] && presentIdsByDate[d].has(s.id); 
-                        if(p) studentTotal++; return `<td class="text-center font-bold ${p ? 'text-green-600' : 'text-red-500'}">${p ? '✓' : 'X'}</td>`; 
+                document.getElementById('report-teacher-name').innerText = loggedTeacher.nombre;
+                document.getElementById('report-date-range').innerText = `${from} al ${to}`;
+
+                const buildTableHtml = (isForPrint = false) => {
+                    const header = `<tr><th class="text-center">#</th><th>Alumno</th>${uniqueDates.map(d => `<th class="text-center">${d.substring(5)}</th>`).join('')}<th class="text-center">Total</th></tr>`;
+                    const rows = filtered.map((s, idx) => {
+                        let total = 0;
+                        const marks = uniqueDates.map(d => {
+                            const p = presentIdsByDate[d] && presentIdsByDate[d].has(s.id);
+                            if(p) total++;
+                            return `<td class="text-center ${p ? 'text-green-600 font-bold' : 'text-red-500'}">${p ? '✓' : 'X'}</td>`;
+                        }).join('');
+                        return `<tr><td class="text-center">${idx + 1}</td><td class="font-bold">${s.nombre}</td>${marks}<td class="text-center font-black">${total}</td></tr>`;
                     }).join('');
-                    return `<tr><td class="text-center font-bold text-slate-400">${idx + 1}</td><td class="font-bold uppercase text-slate-700">${s.nombre}</td>${daysMarkup}<td class="text-center total-column-cell font-black bg-orange-50">${studentTotal}</td></tr>`;
-                }).join('');
-                document.getElementById('attendance-report-container').classList.remove('hidden'); document.getElementById('general-table-container').classList.add('hidden');
+                    return { header, rows };
+                };
+
+                const uiTable = buildTableHtml(false);
+                document.getElementById('report-table-head').innerHTML = uiTable.header;
+                document.getElementById('report-table-body').innerHTML = uiTable.rows;
+
+                const printTable = buildTableHtml(true);
+                document.getElementById('print-content').innerHTML = `
+                    <div style="padding: 10mm;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid black; padding-bottom: 5mm; margin-bottom: 5mm;">
+                            <h1 style="font-size: 20pt; font-weight: 900; color: #0e5b2f; margin: 0;">COLEGIO XOCHICALLI</h1>
+                            <img src="logo.png" style="height: 20mm;" onerror="this.style.display='none'">
+                        </div>
+                        <h2 style="text-align: center; text-decoration: underline; font-size: 14pt; margin-bottom: 5mm;">REPORTE DE ASISTENCIAS (${group.toUpperCase()})</h2>
+                        <div style="margin-bottom: 5mm; font-size: 10pt;">
+                            <p><strong>PROFESOR:</strong> ${loggedTeacher.nombre}</p>
+                            <p><strong>PERIODO:</strong> ${from} al ${to}</p>
+                        </div>
+                        <table class="master-list-table">
+                            <thead>${printTable.header}</thead>
+                            <tbody>${printTable.rows}</tbody>
+                        </table>
+                        <div style="margin-top: 15mm; display: flex; justify-content: space-around;">
+                            <div style="border-top: 1pt solid black; width: 60mm; text-align: center; padding-top: 2mm; font-size: 9pt;">Firma del Profesor</div>
+                            <div style="border-top: 1pt solid black; width: 60mm; text-align: center; padding-top: 2mm; font-size: 9pt;">Sello de Dirección</div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('attendance-report-container').classList.remove('hidden');
+                document.getElementById('general-table-container').classList.add('hidden');
+                await logAction(`Reporte generado: ${group} (${from} al ${to})`);
             } catch(e) {}
         };
 
@@ -943,6 +925,7 @@
         window.confirmDeleteStudent = (id) => showModalMsg("Borrar Alumno", `¿Eliminar ${id}?`, async () => { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id)); await logAction(`Alumno eliminado: ${id}`); loadStudents(); }, true);
         window.confirmDeleteTeacher = (id) => showModalMsg("Borrar Maestro", `¿Eliminar ${id}?`, async () => { if(id===loggedTeacher.id) return; await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id)); loadTeachers(); }, true);
 
+        /* INICIO */
         window.init = init;
         init();
     </script>
