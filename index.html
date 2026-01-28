@@ -85,7 +85,6 @@
                 background-color: #f0f0f0 !important;
                 font-weight: bold;
             }
-            .text-red-late { color: #dc2626 !important; font-weight: bold !important; }
         }
 
         .print-only { display: none; }
@@ -133,11 +132,6 @@
             min-height: 100svh;
             display: flex;
             flex-direction: column;
-        }
-
-        .row-late {
-            background-color: #fef2f2 !important;
-            color: #dc2626 !important;
         }
     </style>
 </head>
@@ -228,6 +222,7 @@
     </header>
 
     <main id="main-content" class="max-w-6xl mx-auto p-4 md:p-6 no-print hidden">
+        <!-- SECCION ADMIN / CONTROL ESCOLAR -->
         <section id="section-admin" class="hidden space-y-6">
             <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-4">
                 <button onclick="window.switchSubTab('asistencia')" id="subtab-asistencia" class="px-4 py-2 rounded-lg bg-white border text-xs font-bold uppercase text-slate-600 transition-all">Asistencia</button>
@@ -235,6 +230,7 @@
                 <button onclick="window.switchSubTab('historial')" id="subtab-historial" class="hidden px-4 py-2 rounded-lg bg-white border text-xs font-bold uppercase text-indigo-600 transition-all"><i class="fas fa-history mr-1"></i>Historial</button>
             </div>
 
+            <!-- ASISTENCIA -->
             <div id="subcontent-asistencia" class="hidden space-y-4">
                 <div class="bg-white p-6 rounded-xl shadow-sm border flex flex-wrap gap-4 items-end shadow-sm">
                     <div class="flex-1 min-w-[140px]"><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Desde</label><input id="date-from" type="date" class="w-full px-3 py-2 border rounded-lg text-xs outline-none"></div>
@@ -264,6 +260,7 @@
                 </div>
             </div>
 
+            <!-- MANTENIMIENTO -->
             <div id="subcontent-mantenimiento" class="hidden space-y-6">
                 <div class="flex gap-4 border-b border-slate-200 pb-2">
                     <button onclick="window.switchMaintCategory('registros')" id="maint-cat-registros" class="maint-cat-btn pb-2 px-4 text-xs font-bold uppercase border-b-2 border-transparent transition-all">Registros</button>
@@ -334,7 +331,7 @@
                     </div>
                     
                     <div id="sys-content-borrar" class="hidden bg-white p-6 rounded-xl border max-w-md space-y-4 shadow-sm">
-                        <h3 class="font-bold text-red-600 text-xs uppercase border-b pb-2 text-center">Eliminar Asistencias (Periodo)</h3>
+                        <h3 class="font-bold text-red-600 text-xs uppercase border-b pb-2 text-center">Borrar Asistencias (Periodo)</h3>
                         <div class="grid grid-cols-2 gap-2">
                             <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Desde</label><input id="delete-date-from" type="date" class="w-full px-3 py-2 border rounded-lg text-xs outline-none"></div>
                             <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Hasta</label><input id="delete-date-to" type="date" class="w-full px-3 py-2 border rounded-lg text-xs outline-none"></div>
@@ -344,7 +341,7 @@
 
                     <div id="sys-content-recuperar" class="hidden space-y-4">
                         <div class="bg-white p-6 rounded-xl border shadow-sm">
-                            <h3 class="font-black text-indigo-700 text-xs uppercase border-b pb-4 mb-4 text-center">Recuperación de IDs</h3>
+                            <h3 class="font-black text-indigo-700 text-xs uppercase border-b pb-4 mb-4 text-center">Panel de Recuperación</h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
                                     <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase border-b">
@@ -384,7 +381,7 @@
                 <div class="px-6 py-4 bg-slate-50 border-b flex flex-col md:flex-row justify-between items-center gap-4">
                     <h3 id="table-title-text" class="font-black text-[#0e5b2f] uppercase text-xs tracking-widest font-mono">BASE DE DATOS</h3>
                     <!-- BUSCADOR DINÁMICO -->
-                    <div class="relative w-full md:w-1/2">
+                    <div id="div-record-search" class="relative w-full md:w-1/2">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                         <input type="text" id="record-search-input" placeholder="BUSCAR POR NOMBRE O ID..." onkeyup="window.handleRecordSearch()" class="w-full pl-8 pr-4 py-1.5 border rounded-lg text-xs uppercase font-bold outline-none focus:ring-1 focus:ring-[#e96925] border-slate-200 shadow-sm">
                     </div>
@@ -406,9 +403,16 @@
                     <p id="current-materia-label" class="text-[10px] opacity-80 uppercase font-black text-[#e96925]">CONTROL DE ENTRADA</p>
                 </div>
                 <div class="p-5 space-y-4">
-                    <div class="bg-orange-50 p-3 rounded-xl border border-orange-100 shadow-inner mb-2 text-center">
-                        <label class="text-[10px] font-black text-orange-700 uppercase block mb-1">Hora de Entrada (7 min tol)</label>
-                        <input id="entry-threshold-time" type="time" value="09:00" class="w-full px-4 py-2 border-2 border-orange-200 rounded-lg text-center font-black text-lg outline-none focus:border-[#e96925] shadow-sm" onchange="window.saveGlobalConfig('entryThresholdTime', this.value)">
+                    <!-- CONTROLES DE HORARIO Y TOLERANCIA -->
+                    <div class="bg-orange-50 p-3 rounded-xl border border-orange-100 shadow-inner mb-2 grid grid-cols-2 gap-3">
+                        <div class="text-center">
+                            <label class="text-[9px] font-black text-orange-700 uppercase block mb-1">Hora Entrada</label>
+                            <input id="entry-threshold-time" type="time" value="09:00" class="w-full px-2 py-1.5 border border-orange-200 rounded-lg text-center font-black text-sm outline-none focus:border-[#e96925] shadow-sm" onchange="window.saveGlobalConfig('entryThresholdTime', this.value)">
+                        </div>
+                        <div class="text-center">
+                            <label class="text-[9px] font-black text-orange-700 uppercase block mb-1">Tolerancia (min)</label>
+                            <input id="entry-tolerance-minutes" type="number" value="0" min="0" class="w-full px-2 py-1.5 border border-orange-200 rounded-lg text-center font-black text-sm outline-none focus:border-[#e96925] shadow-sm" onchange="window.saveGlobalConfig('entryToleranceMinutes', this.value)">
+                        </div>
                     </div>
 
                     <div id="qr-reader-container" class="relative">
@@ -476,7 +480,7 @@
         const historialColl = collection(db, 'artifacts', appId, 'public', 'data', 'historial');
         const configColl = collection(db, 'artifacts', appId, 'public', 'data', 'config');
 
-        /* --- UTILIDADES GLOBALES (HOISTED) --- */
+        /* --- FUNCIONES AUXILIARES GLOBALES (HOISTED) --- */
         const getMexicoDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City' }).format(new Date());
         const getMexicoTime = () => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
         window.getMexicoDate = getMexicoDate;
@@ -527,7 +531,7 @@
         function renderRecoveryTable() {
             const body = document.getElementById('recovery-table-body'); if(!body) return;
             const list = teachers.filter(t => t.id !== 'TLAHUISCALPANTECUTLI');
-            if (list.length === 0) { body.innerHTML = `<tr><td colspan='3' class='p-8 text-center italic text-slate-400'>Sin registros</td></tr>`; return; }
+            if (list.length === 0) { body.innerHTML = `<tr><td colspan='3' class='p-8 text-center italic'>Sin registros</td></tr>`; return; }
             body.innerHTML = list.map(t => `<tr><td class='px-4 py-3 font-bold uppercase'>${t.nombre}</td><td class='px-4 py-3 font-mono text-[#0e5b2f] font-bold'>${t.id}</td><td class='px-4 py-3 text-center'><button onclick='window.confirmResetTeacherAccount("${t.id}")' class='bg-red-50 text-red-600 px-3 py-1 rounded-lg text-[10px] uppercase border border-red-200 hover:bg-red-100 transition-colors'>Reiniciar</button></td></tr>`).join('');
         }
         window.renderRecoveryTable = renderRecoveryTable;
@@ -574,6 +578,7 @@
             o.start(); o.stop(audioCtx.currentTime + 0.4); 
         }
 
+        /* --- MOTOR ASISTENCIA CON TOLERANCIA --- */
         async function onScanSuccess(t) { await window.processAttendance(t); }
 
         window.processAttendance = async (t) => {
@@ -581,19 +586,48 @@
             if (isScannerRunning) try { await html5QrScanner.pause(); } catch(e) {}
             const id = t.trim().toUpperCase();
             const now = getMexicoTime();
+            
+            // LÓGICA DE TIEMPO
             const entryVal = document.getElementById('entry-threshold-time').value;
+            const toleranceMin = parseInt(document.getElementById('entry-tolerance-minutes').value) || 0;
             const [eH, eM] = entryVal.split(':').map(Number);
-            const limitStr = `${String(Math.floor((eH * 60 + eM + 7) / 60)).padStart(2,'0')}:${String((eH * 60 + eM + 7) % 60).padStart(2,'0')}:00`;
-            const isLate = now > limitStr;
+            
+            const limitSec = (eH * 3600) + (eM * 60);
+            const toleranceLimitSec = limitSec + (toleranceMin * 60);
+            
+            const [nH, nM, nS] = now.split(':').map(Number);
+            const nowSeconds = (nH * 3600) + (nM * 60) + nS;
+
+            let calculatedStatus = "A TIEMPO";
+            if (nowSeconds > toleranceLimitSec) calculatedStatus = "RETARDO";
+            else if (nowSeconds > limitSec) calculatedStatus = "TOLERANCIA";
 
             if (scannedTodayIds.has(id)) { initAudio(); playErrorSound(); window.showStatus(`YA REGISTRADO HOY: ${id}`, "warning"); }
             else {
                 try {
                     const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id));
                     if (snap.exists()) {
-                        await addDoc(asistenciasColl, { alumnoId: id, nombre: snap.data().nombre, profesorId: loggedTeacher.id, profesorNombre: loggedTeacher.nombre, fecha: getMexicoDate(), hora: now, thresholdTime: entryVal, timestamp: serverTimestamp() });
-                        initAudio(); if (isLate) { playLateSound(); window.showStatus(`RETARDO: ${snap.data().nombre}`, "warning"); }
-                        else { playSuccessSound(); window.showStatus(`REGISTRADO: ${snap.data().nombre}`, "success"); }
+                        await addDoc(asistenciasColl, { 
+                            alumnoId: id, 
+                            nombre: snap.data().nombre, 
+                            profesorId: loggedTeacher.id, 
+                            profesorNombre: loggedTeacher.nombre, 
+                            fecha: getMexicoDate(), 
+                            hora: now, 
+                            thresholdTime: entryVal,
+                            toleranceMinutes: toleranceMin,
+                            status: calculatedStatus,
+                            timestamp: serverTimestamp() 
+                        });
+                        
+                        initAudio(); 
+                        if (calculatedStatus === "RETARDO") { 
+                            playLateSound(); window.showStatus(`RETARDO: ${snap.data().nombre}`, "warning"); 
+                        } else if (calculatedStatus === "TOLERANCIA") {
+                            playLateSound(); window.showStatus(`TOLERANCIA: ${snap.data().nombre}`, "warning");
+                        } else { 
+                            playSuccessSound(); window.showStatus(`REGISTRADO: ${snap.data().nombre}`, "success"); 
+                        }
                     } else { initAudio(); playErrorSound(); window.showStatus("ID NO ENCONTRADO", "error"); }
                 } catch (e) {}
             }
@@ -613,12 +647,12 @@
                 const allLogs = snap.docs.map(d => d.data()).filter(d => d.fecha === today);
                 allLogs.filter(l => l.profesorId === loggedTeacher.id).forEach(l => scannedTodayIds.add(l.alumnoId)); 
                 document.getElementById('scan-count').innerText = `${allLogs.length} HOY`; 
-                const entryVal = document.getElementById('entry-threshold-time').value;
-                const [eH, eM] = entryVal.split(':').map(Number);
-                const limitStr = `${String(Math.floor((eH*60+eM+7)/60)).padStart(2,'0')}:${String((eH*60+eM+7)%60).padStart(2,'0')}:00`;
+                
                 document.getElementById('recent-logs').innerHTML = allLogs.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0)).slice(0, 10).map(l => {
-                    const isLate = l.hora > limitStr;
-                    return `<li class="p-4 flex justify-between bg-white ${isLate ? 'border-l-4 border-red-500' : 'border-l-4 border-emerald-500'}"><div><p class="font-bold uppercase text-xs ${isLate ? 'text-red-600' : ''}">${l.nombre}</p><p class="text-[9px] text-slate-400">ID: ${l.alumnoId}</p></div><span class="text-[10px] font-mono font-black">${l.hora || '--:--'}</span></li>`;
+                    const isLate = l.status === "RETARDO";
+                    const isTol = l.status === "TOLERANCIA";
+                    const borderClass = isLate ? 'border-amber-400' : (isTol ? 'border-orange-200' : 'border-emerald-500');
+                    return `<li class="p-4 flex justify-between bg-white border-l-4 ${borderClass}"><div><p class="font-bold uppercase text-xs">${l.nombre}</p><p class="text-[9px] text-slate-400">ID: ${l.alumnoId}</p></div><div class="flex flex-col items-end"><span class="text-[10px] font-mono font-black">${l.hora || '--:--'}</span><span class="text-[8px] font-black italic uppercase">${l.status === 'A TIEMPO' ? '' : l.status}</span></div></li>`;
                 }).join(''); 
             }); 
         }
@@ -634,7 +668,10 @@
                     document.getElementById('btn-login').disabled = false; 
                     document.getElementById('login-btn-text').innerText = 'Entrar';
                     const sSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'settings'));
-                    if (sSnap.exists() && sSnap.data().entryThresholdTime) document.getElementById('entry-threshold-time').value = sSnap.data().entryThresholdTime;
+                    if (sSnap.exists()) {
+                        if(sSnap.data().entryThresholdTime) document.getElementById('entry-threshold-time').value = sSnap.data().entryThresholdTime;
+                        if(sSnap.data().entryToleranceMinutes) document.getElementById('entry-tolerance-minutes').value = sSnap.data().entryToleranceMinutes;
+                    }
                     try {
                         const snap = await getDocs(maestrosColl); const hint = document.getElementById('admin-hint');
                         if (snap.empty && hint) hint.classList.remove('hidden'); else if (hint) hint.classList.add('hidden');
@@ -651,7 +688,7 @@
 
         /* --- VINCULOS WINDOW --- */
         window.attemptLogin = async () => {
-            const inputVal = document.getElementById('input-login-id').trim ? document.getElementById('input-login-id').value.trim() : document.getElementById('input-login-id').value; if (!inputVal) return;
+            const inputVal = document.getElementById('input-login-id').value.trim(); if (!inputVal) return;
             const id = inputVal.toUpperCase(); const btn = document.getElementById('btn-login'), btnTxt = document.getElementById('login-btn-text');
             btn.disabled = true; btnTxt.innerText = "Verificando...";
             try {
@@ -676,12 +713,11 @@
             if(rEl) rEl.innerText = isSuper ? 'SUPERUSUARIO' : (isEntrance ? 'PORTERÍA' : (isAdmin ? 'ADMINISTRADOR' : 'DOCENTE'));
             if(loggedTeacher.id !== 'ADMIN' && !isSuper && !isEntrance && !loggedTeacher.idCambiado) document.getElementById('forced-id-modal').classList.remove('hidden');
             
-            const showAdminTab = (isAdmin || isSuper) && !isEntrance;
+            const showAdminTab = !isEntrance;
             document.getElementById('tab-admin').classList.toggle('hidden', !showAdminTab);
             const btnMaint = document.getElementById('subtab-mantenimiento'), btnHist = document.getElementById('subtab-historial');
-            if (showAdminTab) btnMaint.classList.remove('hidden'); else btnMaint.classList.add('hidden');
+            if (isSuper || isAdmin) btnMaint.classList.remove('hidden'); else btnMaint.classList.add('hidden');
             
-            // REGLA ESTRICTA: Sólo el Superusuario ve Historial y Recuperar Acceso
             const tabRecuperar = document.getElementById('sys-tab-recuperar');
             if (isSuper) {
                 btnHist.classList.remove('hidden');
@@ -690,7 +726,6 @@
                 btnHist.classList.add('hidden');
                 if(tabRecuperar) tabRecuperar.classList.add('hidden');
             }
-            
             loadStudents(); loadTeachers(); listenToAttendanceToday(); window.switchTab('scanner');
         }
 
@@ -707,8 +742,11 @@
             });
             const sel = document.getElementById('subcontent-' + s); if(sel) sel.classList.remove('hidden');
             const b = document.getElementById('subtab-' + s); if(b) b.classList.add('subtab-active');
+            
+            document.getElementById('record-search-input').value = '';
             document.getElementById('general-table-container').classList.add('hidden');
             document.getElementById('attendance-report-container').classList.add('hidden');
+            
             if (s === 'mantenimiento') window.switchMaintCategory('registros');
             else if (s === 'historial') listenToHistorial();
         };
@@ -732,7 +770,7 @@
 
         window.switchInnerTab = (t) => {
             currentInnerTab = t;
-            document.getElementById('record-search-input').value = ''; // Limpiar buscador al cambiar
+            document.getElementById('record-search-input').value = ''; 
             document.querySelectorAll('.inner-tab-btn').forEach(b => b.className = "inner-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase text-slate-500 transition-all");
             const btn = document.getElementById('innertab-' + t); if(btn) btn.className = "inner-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase inner-tab-active text-white shadow-sm transition-all";
             document.getElementById('div-captura-alumnos').classList.toggle('hidden', t !== 'alumnos');
@@ -754,13 +792,11 @@
             if (t === 'recuperar') window.renderRecoveryTable();
         };
 
-        /* --- LOGICA BUSCADOR --- */
         window.handleRecordSearch = () => {
-            const query = document.getElementById('record-search-input').value.toUpperCase();
-            renderTable(currentInnerTab === 'alumnos' ? "catalog" : "teachers", query);
+            const queryVal = document.getElementById('record-search-input').value.toUpperCase();
+            renderTable(currentInnerTab === 'alumnos' ? "catalog" : "teachers", queryVal);
         };
 
-        /* --- ACCIONES DATOS --- */
         window.addStudent = async () => {
             const id = document.getElementById('input-id').value.trim().toUpperCase(), nombre = document.getElementById('input-name').value.trim().toUpperCase();
             if (!id || !nombre) return;
@@ -790,7 +826,6 @@
                 location.reload();
             }, true);
         };
-
         window.generateAttendanceReport = async () => {
             const from = document.getElementById('date-from').value, to = document.getElementById('date-to').value, group = document.getElementById('select-group').value;
             if (!from || !to) return;
@@ -807,9 +842,7 @@
                     filtered.forEach(s => {
                         const sLogs = (attMap[s.id] || []).sort((a,b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora));
                         sLogs.forEach(l => {
-                            const eTime = l.thresholdTime || "09:00", [eH, eM] = eTime.split(':').map(Number), limit = eH * 60 + eM + 7;
-                            const isL = l.hora > `${String(Math.floor(limit/60)).padStart(2,'0')}:${String(limit%60).padStart(2,'0')}:00`;
-                            bodyHtml += `<tr class='${isL ? 'row-late text-red-600 font-black' : ''}'><td class='text-center'>${idx++}</td><td>${s.nombre}</td><td>${l.fecha}</td><td>${l.hora}</td><td>${isL ? 'RETARDO' : ''}</td></tr>`;
+                            bodyHtml += `<tr><td class='text-center'>${idx++}</td><td>${s.nombre}</td><td>${l.fecha}</td><td>${l.hora}</td><td>${l.status === 'A TIEMPO' ? '' : l.status}</td></tr>`;
                         });
                     });
                 } else {
@@ -820,9 +853,7 @@
                         const cells = uniqueDates.map(d => {
                             const found = (attMap[s.id] || []).find(l => l.fecha === d);
                             if(found) tot++; else return `<td class='text-center text-red-400'>X</td>`;
-                            const eTime = found.thresholdTime || "09:00", [eH, eM] = eTime.split(':').map(Number), limit = eH * 60 + eM + 7;
-                            const isL = found.hora > `${String(Math.floor(limit/60)).padStart(2,'0')}:${String(limit%60).padStart(2,'0')}:00`;
-                            return `<td class='text-center ${isL ? 'text-red-600 font-black' : 'text-green-600'}'>${isL ? 'R' : '✓'}</td>`;
+                            return `<td class='text-center ${found.status === "A TIEMPO" ? "text-green-600" : "font-black"}'>${found.status === 'RETARDO' ? 'R' : (found.status === 'TOLERANCIA' ? 'T' : '✓')}</td>`;
                         }).join('');
                         return `<tr><td>${idx+1}</td><td class='font-bold'>${s.nombre}</td>${cells}<td class='font-black'>${tot}</td></tr>`;
                     }).join('');
@@ -831,7 +862,6 @@
                 document.getElementById('attendance-report-container').classList.remove('hidden'); document.getElementById('general-table-container').classList.add('hidden');
             } catch(e) {}
         };
-
         async function loadStudents() { if (!currentUser) return; const snap = await getDocs(alumnosColl); students = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => a.nombre.localeCompare(b.nombre)); if (currentInnerTab === 'alumnos') renderTable("catalog"); }
         async function loadTeachers() { if (!currentUser) return; const snap = await getDocs(maestrosColl); teachers = snap.docs.map(d => ({ id: d.id, ...d.data() })); if (currentInnerTab === 'maestros') renderTable("teachers"); if (currentSysTab === 'recuperar') window.renderRecoveryTable(); }
         
@@ -850,7 +880,6 @@
                 body.innerHTML = data.map(t => `<tr><td class='px-6 py-4 font-black'>${t.idCambiado ? '<i class="fas fa-lock text-slate-300"></i>' : t.id}</td><td class='px-6 py-4'>${t.nombre}</td><td class='px-6 py-4 text-center'><button onclick='window.editTeacher("${t.id}")'><i class='fas fa-edit'></i></button></td><td class='px-6 py-4 text-center'><button onclick='window.confirmDeleteTeacher("${t.id}", "${t.nombre}")'><i class='fas fa-trash-alt'></i></button></td></tr>`).join('');
             }
         }
-
         function listenToHistorial() {
             if (!currentUser || (loggedTeacher && loggedTeacher.id !== 'TLAHUISCALPANTECUTLI')) return;
             onSnapshot(historialColl, (snap) => {
@@ -867,13 +896,14 @@
         window.printAllQRs = async () => { if (students.length === 0) return; await performQRPrint(students, "Total"); };
         window.printGroupByQR = async () => { const g = document.getElementById('select-print-group').value.toUpperCase(); const f = students.filter(s => s.id.substring(0, 2).toUpperCase() === g); if(f.length === 0) return window.showModalMsg("Aviso", "No hay alumnos."); await performQRPrint(f, `Grupo ${g}`); };
         window.printSelectedQRs = async () => { const checks = document.querySelectorAll('.print-student-check:checked'); if(checks.length === 0) return window.showModalMsg("Aviso", "Seleccione alumnos."); const ids = Array.from(checks).map(c => c.value); await performQRPrint(students.filter(s => ids.includes(s.id)), "Selección"); checks.forEach(c => c.checked = false); };
-        async function generateQRAsync(c, t, s) { return new Promise((r) => { new QRCode(c, { text: t, width: s, height: s, correctLevel : QRCode.CorrectLevel.H }); setTimeout(r, 150); }); }
         window.filterPrintSelection = () => { const q = document.getElementById('search-print-student').value.toUpperCase(); document.querySelectorAll('.print-item-row').forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? 'flex' : 'none'); };
         window.updateTeacherForcedId = async () => { const newId = document.getElementById('input-forced-new-id').value.trim().toUpperCase(); if(!newId || newId === loggedTeacher.id) return window.showModalMsg("Aviso", "Ingrese un ID nuevo."); try { const checkDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', newId)); if(checkDoc.exists()) return window.showModalMsg("Aviso", "Este ID ya está en uso."); const oldId = loggedTeacher.id; const newData = { ...loggedTeacher, idCambiado: true }; delete newData.id; await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', newId), newData); await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', oldId)); loggedTeacher.id = newId; loggedTeacher.idCambiado = true; document.getElementById('forced-id-modal').classList.add('hidden'); } catch(e) {} };
         window.confirmResetTeacherAccount = (id) => { window.showModalMsg("Reiniciar Seguridad", "¿Invalidar el ID actual?", () => { const tempId = "TEMP_" + Math.floor(Math.random()*10000); window.showModalMsg("ID Temporal", `Nuevo ID: ${tempId}`, async () => { const tData = teachers.find(t => t.id === id); const newData = { ...tData, idCambiado: false }; delete newData.id; await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', tempId), newData); await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id)); await loadTeachers(); }); }, true); };
         window.confirmResetHistory = () => { window.showModalMsg("Reiniciar", "¿Vaciar bitácora?", async () => { const snap = await getDocs(historialColl); for (const d of snap.docs) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'historial', d.id)); await window.logAction("Bitácora reiniciada"); }, true); };
         window.logout = () => { location.reload(); };
+        
         async function performQRPrint(list, logTag) { window.showModalMsg("Generando", `Preparando códigos...`); const area = document.getElementById('print-content'); document.getElementById('print-area').style.display = 'block'; let html = ""; for(let i = 0; i < list.length; i += 9) { const chunk = list.slice(i, i + 9); html += `<div class='qr-grid ${i + 9 < list.length ? 'page-break' : ''}'>`; for (const s of chunk) html += `<div class='qr-print-card'><div class='qr-container-relative'><div id='pqr-${s.id}' class='qr-wrapper'></div><div class='qr-logo-container'><img src='logo.png' class='qr-logo-img' onerror='this.style.display="none"'><span class='qr-logo-id'>${s.id}</span></div></div></div>`; html += `</div>`; } area.innerHTML = html; for (const s of list) { const el = document.getElementById(`pqr-${s.id}`); if(el) await generateQRAsync(el, s.id, 280); } setTimeout(() => { window.print(); document.getElementById('custom-modal').classList.add('hidden'); document.getElementById('print-area').style.display = ''; window.logAction(`Impresión QR ${logTag}`); }, 1200); }
+        async function generateQRAsync(c, t, s) { return new Promise((r) => { new QRCode(c, { text: t, width: s, height: s, correctLevel : QRCode.CorrectLevel.H }); setTimeout(r, 150); }); }
 
         window.editStudent = (id) => {
             const student = students.find(s => s.id === id); if (!student) return;
