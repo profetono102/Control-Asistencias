@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colegio Xochicalli - Control Escolar QR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #0e5b2f;
+            --accent-orange: #e96925;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; visibility: visible !important; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; z-index: 9999; background: white; }
+            .qr-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 15px !important; padding: 10px; }
+            .master-list-table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px; }
+            .master-list-table th, .master-list-table td { border: 1px solid #000 !important; padding: 4px 8px !important; text-align: left !important; font-size: 10px; }
+            .page-break { page-break-after: always; }
+            body { background: white !important; -webkit-print-color-adjust: exact; }
+        }
+        .print-only { display: none; }
+        .tab-active { border-bottom: 4px solid var(--primary-green); color: var(--primary-green); font-weight: bold; }
+        .subtab-active { background-color: var(--primary-green) !important; color: white !important; }
+        
+        .cat-active { border-bottom: 3px solid var(--primary-green) !important; color: var(--primary-green) !important; font-weight: bold; background-color: #f0fdf4; }
+        .cat-active-orange { border-bottom: 3px solid var(--accent-orange) !important; color: var(--accent-orange) !important; font-weight: bold; background-color: #fff7ed; }
+        .inner-tab-active { background-color: var(--primary-green) !important; color: white !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        
+        #qr-reader video { border-radius: 12px; }
+        .qr-wrapper canvas, .qr-wrapper img { margin: 0 auto; }
+        img:not([src]) { visibility: hidden; }
+        
+        .report-card { background: white; border-radius: 1rem; border: 1px solid #e2e8f0; overflow: hidden; }
+        .attendance-table th { background-color: #f8fafc; color: #64748b; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; }
+        .attendance-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.875rem; }
+        
+        .total-column-cell { background-color: #fff7ed; font-weight: 900; color: var(--accent-orange); border-left: 2px solid #fed7aa; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+
+    <!-- MODAL DE MENSAJES -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border-t-4 border-[#0e5b2f]">
+            <h3 id="modal-msg-title" class="text-lg font-bold text-[#0e5b2f] uppercase tracking-tighter">Aviso</h3>
+            <p id="modal-msg-body" class="text-sm text-slate-600 font-medium"></p>
+            <div id="modal-msg-footer" class="flex gap-2 pt-2">
+                <button id="btn-modal-confirm" class="flex-1 bg-[#e96925] text-white py-2 rounded-lg font-bold text-xs uppercase text-center shadow-md transition-transform active:scale-95">Aceptar</button>
+                <button id="btn-modal-cancel" class="flex-1 bg-slate-100 text-slate-700 py-2 rounded-lg font-bold text-xs uppercase text-center shadow-sm">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE EDICIÓN -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border-t-8 border-[#0e5b2f]">
+            <div class="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-black text-[#0e5b2f] uppercase tracking-tighter">Editar Registro</h3>
+                <button onclick="window.closeEditModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="edit-modal-body" class="p-6 space-y-4"></div>
+            <div class="p-4 bg-slate-50 border-t flex gap-2">
+                <button onclick="window.closeEditModal()" class="flex-1 py-2 rounded-xl font-bold text-xs uppercase text-slate-500 hover:bg-slate-100 transition-colors">Cancelar</button>
+                <button id="btn-save-edit" class="flex-1 bg-[#e96925] text-white py-2 rounded-xl font-bold text-xs uppercase shadow-lg transition-all hover:opacity-90">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL QR -->
+    <div id="qr-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[180] flex items-center justify-center p-4 no-print">
+        <div class="bg-white p-8 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl">
+            <h3 id="modal-title" class="text-xl font-bold uppercase text-[#0e5b2f] leading-none"></h3>
+            <div id="modal-qr-container" class="flex justify-center p-4 bg-white border border-slate-100 rounded-xl mx-auto shadow-inner"></div>
+            <p id="modal-id" class="text-lg font-mono font-bold text-[#e96925] bg-orange-50 py-1 rounded-lg uppercase tracking-widest"></p>
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="flex-1 bg-slate-800 text-white py-2 rounded-lg font-bold text-sm uppercase shadow-sm">Imprimir</button>
+                <button onclick="window.closeModal()" class="flex-1 bg-slate-100 text-slate-700 py-2 rounded-lg font-bold text-sm uppercase shadow-sm text-center">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE LOGIN -->
+    <section id="section-login" class="fixed inset-0 bg-[#0e5b2f] z-[100] flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full space-y-6 text-center border-t-8 border-[#e96925]">
+            <img src="logo.png" alt="Logo Colegio Xochicalli" class="h-24 mx-auto object-contain mb-2" onerror="this.style.display='none'">
+            <h1 class="text-2xl font-bold text-[#0e5b2f] uppercase leading-tight">Colegio Xochicalli</h1>
+            <div id="login-container" class="space-y-4">
+                <p class="text-sm text-slate-500 uppercase font-bold tracking-tighter">Identificación de Personal</p>
+                <input id="input-login-id" type="text" placeholder="ID PERSONAL" class="w-full px-4 py-3 border-2 border-slate-100 rounded-xl outline-none focus:border-[#e96925] text-center text-lg font-bold uppercase transition-all">
+                <button id="btn-login" onclick="window.attemptLogin()" disabled class="w-full bg-[#e96925] hover:bg-[#d1581d] text-white font-bold py-3 rounded-xl shadow-lg transition-all uppercase tracking-widest disabled:bg-slate-400">
+                    <span id="login-btn-text">Conectando...</span>
+                </button>
+                <div id="login-error" class="text-xs font-bold text-red-500 hidden uppercase italic text-center">ID NO RECONOCIDO</div>
+                <div id="admin-hint" class="text-[10px] text-slate-400 font-bold uppercase hidden text-center mt-4 bg-slate-50 p-2 rounded italic text-center italic">Sistema nuevo: Use el ID 'ADMIN' para configurar</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HEADER -->
+    <header id="main-header" class="bg-white shadow-sm no-print hidden border-b border-slate-100">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <img src="logo.png" alt="Logo Header" class="h-12 w-auto object-contain" onerror="this.style.display='none'">
+                <div class="flex flex-col">
+                    <h1 class="text-xl font-bold uppercase text-[#0e5b2f] leading-none">Colegio Xochicalli</h1>
+                    <span id="user-display-name" class="text-[10px] text-[#e96925] font-bold tracking-widest uppercase italic tracking-tighter">Usuario</span>
+                </div>
+            </div>
+            <nav class="flex gap-1 bg-slate-100 p-1 rounded-lg items-center">
+                <button onclick="window.switchTab('scanner')" id="tab-scanner" class="px-4 py-2 rounded-md transition-all text-xs font-bold uppercase">
+                    <i class="fas fa-camera mr-1"></i>Pasar Lista
+                </button>
+                <button onclick="window.switchTab('admin')" id="tab-admin" class="px-4 py-2 rounded-md transition-all text-xs font-bold uppercase hidden">
+                    <i class="fas fa-users-cog mr-1"></i>Control Escolar
+                </button>
+                <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                <button onclick="window.logout()" class="p-2 text-red-500 hover:text-red-700 transition-colors" title="Cerrar Sesión">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content" class="max-w-6xl mx-auto p-4 md:p-6 no-print hidden">
+        <section id="section-admin" class="hidden space-y-6">
+            <div class="flex flex-wrap gap-2 no-print border-b border-slate-200 pb-4">
+                <button onclick="window.switchSubTab('asistencia')" id="subtab-asistencia" class="px-4 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold shadow-sm transition-all hover:bg-slate-50 uppercase text-slate-600">Asistencia</button>
+                <button onclick="window.switchSubTab('mantenimiento')" id="subtab-mantenimiento" class="hidden px-4 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold shadow-sm transition-all hover:bg-slate-50 text-[#e96925] uppercase">Mantenimiento</button>
+            </div>
+
+            <!-- ASISTENCIA -->
+            <div id="subcontent-asistencia" class="hidden space-y-4">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-end shadow-sm">
+                    <div class="flex-1 min-w-[140px]">
+                        <label class="text-[9px] font-bold uppercase text-slate-400 block mb-1">Desde</label>
+                        <input id="date-from" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#0e5b2f] text-xs">
+                    </div>
+                    <div class="flex-1 min-w-[140px]">
+                        <label class="text-[9px] font-bold uppercase text-slate-400 block mb-1">Hasta</label>
+                        <input id="date-to" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#0e5b2f] text-xs">
+                    </div>
+                    <div class="flex-1 min-w-[140px]">
+                        <label class="text-[9px] font-bold uppercase text-slate-400 block mb-1">Grupo</label>
+                        <select id="select-group" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#0e5b2f] text-xs font-bold">
+                            <option value="all">GENERAL</option>
+                            <optgroup label="PRIMARIA"><option value="1p">1P</option><option value="2p">2P</option><option value="3p">3P</option><option value="4p">4P</option><option value="5p">5P</option><option value="6p">6P</option></optgroup>
+                            <optgroup label="SECUNDARIA"><option value="1s">1S</option><option value="2s">2S</option><option value="3s">3S</option></optgroup>
+                        </select>
+                    </div>
+                    <button onclick="window.generateAttendanceReport()" class="bg-[#0e5b2f] hover:opacity-90 text-white font-bold px-5 py-2.5 rounded-lg transition-all text-xs uppercase shadow-sm">Consultar</button>
+                </div>
+
+                <div id="attendance-report-container" class="hidden space-y-6">
+                    <div class="report-card p-8 shadow-lg">
+                        <div class="flex items-center justify-between mb-8 border-b-2 border-slate-100 pb-6">
+                            <div class="flex items-center gap-6">
+                                <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+                                <div>
+                                    <h1 class="text-3xl font-black text-[#0e5b2f] uppercase leading-none">Colegio Xochicalli</h1>
+                                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Informe de Asistencia Escolar</p>
+                                </div>
+                            </div>
+                            <button onclick="window.printAttendanceReport()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase flex items-center gap-2 transition-transform active:scale-95">
+                                <i class="fas fa-print"></i> Imprimir Reporte
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8 mb-8">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Profesor</p>
+                                <p id="report-teacher-name" class="text-sm font-black text-slate-700 uppercase">--</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Materia</p>
+                                <p id="report-subject-name" class="text-sm font-black text-slate-700 uppercase">--</p>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-slate-200">
+                            <table class="w-full text-left attendance-table border-collapse">
+                                <thead id="report-table-head" class="bg-slate-50 text-[10px]"></thead>
+                                <tbody id="report-table-body" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MANTENIMIENTO -->
+            <div id="subcontent-mantenimiento" class="hidden space-y-6">
+                <div class="flex gap-4 border-b border-slate-200 pb-2">
+                    <button onclick="window.switchMaintCategory('registros')" id="maint-cat-registros" class="maint-cat-btn pb-2 px-4 text-xs font-bold uppercase border-b-2 border-transparent transition-all">Registros</button>
+                    <button onclick="window.switchMaintCategory('impresion')" id="maint-cat-impresion" class="maint-cat-btn pb-2 px-4 text-xs font-bold uppercase border-b-2 border-transparent transition-all">Impresión</button>
+                    <button onclick="window.switchMaintCategory('sistema')" id="maint-cat-sistema" class="maint-cat-btn pb-2 px-4 text-xs font-bold uppercase border-b-2 border-transparent transition-all">Sistema</button>
+                </div>
+
+                <div id="registros-subnav" class="hidden flex gap-2 bg-slate-100 p-1 rounded-xl w-fit">
+                    <button onclick="window.switchInnerTab('alumnos')" id="innertab-alumnos" class="inner-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all">Alumnos</button>
+                    <button onclick="window.switchInnerTab('maestros')" id="innertab-maestros" class="inner-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all">Maestros</button>
+                </div>
+
+                <div id="innercontent-alumnos" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                        <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2 text-center">Captura de Alumno</h3>
+                        <div class="space-y-3">
+                            <input id="input-id" type="text" placeholder="ID ALUMNO (1P01)" class="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#0e5b2f] uppercase text-sm font-bold">
+                            <input id="input-name" type="text" placeholder="NOMBRE COMPLETO" class="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#0e5b2f] uppercase text-sm">
+                            <button onclick="window.addStudent()" class="w-full bg-[#0e5b2f] hover:opacity-90 text-white font-bold py-2 rounded-lg transition-all uppercase text-sm shadow-sm">Guardar Alumno</button>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 text-center">
+                        <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2 text-center">Acciones Masivas</h3>
+                        <div class="grid grid-cols-1 gap-2">
+                            <input type="file" id="csv-file-input" accept=".csv, text/csv, application/vnd.ms-excel" class="hidden">
+                            <button onclick="document.getElementById('csv-file-input').click()" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-600 py-2.5 rounded-lg border border-slate-200 font-bold uppercase text-[10px] shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95">
+                                <i class="fas fa-file-import"></i> Importar CSV
+                            </button>
+                            <button onclick="window.exportStudentsCSV()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2.5 rounded-lg border border-emerald-200 font-bold uppercase text-[10px] shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95">
+                                <i class="fas fa-file-export"></i> Exportar Catálogo CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="innercontent-maestros" class="hidden">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 max-w-lg mx-auto space-y-4 shadow-lg">
+                        <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2 text-center">Registro de Docentes</h3>
+                        <div class="space-y-3">
+                            <input id="input-maestro-id" type="text" placeholder="ID MAESTRO" class="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#0e5b2f] uppercase text-sm font-bold">
+                            <input id="input-maestro-name" type="text" placeholder="NOMBRE COMPLETO" class="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#0e5b2f] uppercase text-sm">
+                            <input id="input-maestro-materia" type="text" placeholder="MATERIA" class="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-[#0e5b2f] uppercase text-sm">
+                            <label class="flex items-center gap-2 p-2 bg-slate-50 rounded-lg cursor-pointer">
+                                <input type="checkbox" id="input-maestro-admin" class="w-4 h-4 text-[#0e5b2f]">
+                                <span class="text-xs font-bold text-slate-600 uppercase">Es Administrador</span>
+                            </label>
+                            <button onclick="window.addTeacher()" class="w-full bg-[#0e5b2f] hover:opacity-95 text-white font-bold py-2 rounded-lg transition-all uppercase text-sm shadow-md">Guardar Maestro</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="innercontent-impresion" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 text-center shadow-sm">
+                        <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2">Gafetes QR</h3>
+                        <button onclick="window.printAllQRs()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-900 transition-all uppercase text-xs shadow-md">Imprimir Todos los QR</button>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 shadow-sm">
+                        <h3 class="font-bold text-[#0e5b2f] uppercase text-xs border-b pb-2">Lista Maestra</h3>
+                        <div class="flex flex-wrap gap-4 bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2 text-center justify-center">
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="check-id" checked class="w-3 h-3"><span class="text-[10px] font-bold uppercase">ID</span></label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="check-nombre" checked class="w-3 h-3"><span class="text-[10px] font-bold uppercase">Nombre</span></label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="check-qr" class="w-3 h-3"><span class="text-[10px] font-bold uppercase">QR</span></label>
+                        </div>
+                        <button onclick="window.printMasterList()" class="w-full bg-[#e96925] hover:opacity-90 text-white font-bold py-3 rounded-lg transition-all uppercase text-xs shadow-md text-center">Generar e Imprimir</button>
+                    </div>
+                </div>
+
+                <!-- SUBPANELES DE SISTEMA -->
+                <div id="innercontent-sistema" class="hidden space-y-4">
+                    <div class="flex gap-2 bg-slate-100 p-1 rounded-xl w-fit">
+                        <button onclick="window.switchSystemSubTab('borrar')" id="sys-tab-borrar" class="sys-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all">Borrar Asistencias</button>
+                        <button onclick="window.switchSystemSubTab('limpieza')" id="sys-tab-limpieza" class="sys-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all">Limpieza</button>
+                    </div>
+
+                    <div id="sys-content-borrar" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 max-w-md">
+                        <h3 class="font-bold text-red-600 text-xs uppercase border-b pb-2">Borrar Asistencias</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[9px] font-bold uppercase text-slate-400 block mb-1">Desde</label>
+                                <input id="delete-date-from" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none text-xs focus:ring-1 focus:ring-red-200">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold uppercase text-slate-400 block mb-1">Hasta</label>
+                                <input id="delete-date-to" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none text-xs focus:ring-1 focus:ring-red-200">
+                            </div>
+                        </div>
+                        <button id="btn-clear-database" onclick="window.confirmClearAttendance()" class="w-full bg-red-600 text-white font-bold py-2 rounded-lg hover:bg-red-700 transition-all text-[10px] uppercase shadow-md">
+                            Eliminar asistencias
+                        </button>
+                    </div>
+
+                    <div id="sys-content-limpieza" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4 max-w-md text-center">
+                        <h3 class="font-bold text-red-600 text-xs uppercase border-b pb-2 tracking-widest uppercase text-center">Limpieza de Sistema</h3>
+                        <p class="text-[10px] text-slate-500 italic mb-2">Atención: Esta acción eliminará permanentemente todos los datos registrados.</p>
+                        <button onclick="window.confirmResetSystem()" class="w-full bg-red-800 text-white font-bold py-2 rounded-lg shadow-lg hover:bg-red-900 transition-all text-[10px] uppercase">VACIAR TODO EL SISTEMA</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA GENERAL -->
+            <div id="general-table-container" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden shadow-md">
+                <div id="table-title" class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <h3 id="table-title-text" class="font-bold text-[#0e5b2f] uppercase tracking-tighter text-xs">Datos</h3>
+                    <div id="report-stats" class="text-[10px] font-bold text-[#e96925] bg-orange-50 px-3 py-1 rounded-full hidden"></div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead id="table-headers" class="bg-slate-50 text-slate-400 text-[9px] uppercase font-bold tracking-wider border-b"></thead>
+                        <tbody id="data-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCANNER -->
+        <section id="section-scanner" class="space-y-6">
+            <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+                <div class="bg-[#0e5b2f] p-4 text-white text-center">
+                    <h2 class="text-lg font-semibold uppercase tracking-wide">Pase de Lista QR</h2>
+                    <p id="current-materia-label" class="text-xs opacity-80 uppercase font-bold text-[#e96925]">MATERIA...</p>
+                </div>
+                <div class="p-4 space-y-4">
+                    <div id="qr-reader-container" class="relative">
+                        <div id="qr-reader" class="rounded-lg overflow-hidden border-2 border-dashed border-slate-200 bg-slate-50 min-h-[250px]"></div>
+                        <div id="camera-off-overlay" class="hidden absolute inset-0 bg-slate-800/90 flex flex-col items-center justify-center text-white rounded-lg">
+                            <i class="fas fa-video-slash text-4xl mb-2"></i>
+                            <p class="text-sm font-medium uppercase">Cámara Apagada</p>
+                        </div>
+                    </div>
+                    <button id="btn-toggle-camera" onclick="window.toggleCamera()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 uppercase text-sm">
+                        <i class="fas fa-power-off"></i> <span id="btn-camera-text">Apagar Cámara</span>
+                    </button>
+                    <div id="scan-status" class="p-4 rounded-lg text-center font-bold hidden uppercase text-xs"></div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden max-w-2xl mx-auto shadow-lg">
+                <div class="px-4 py-3 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <h3 class="font-bold text-sm uppercase text-[#0e5b2f] tracking-tight">Escaneos Recientes</h3>
+                    <span id="scan-count" class="bg-orange-50 text-[#e96925] text-xs font-bold px-2 py-1 rounded-full text-center uppercase">0 HOY</span>
+                </div>
+                <ul id="recent-logs" class="divide-y divide-slate-100 max-h-60 overflow-y-auto">
+                    <li class="p-4 text-center text-slate-400 italic text-sm uppercase font-bold">No hay registros hoy</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <div id="print-area" class="print-only"><div id="print-content"></div></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, where, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXkAb_YnMSOcww5D6RQPMd56BSdCwkiB8",
+            authDomain: "listadeasitencia.firebaseapp.com",
+            projectId: "listadeasitencia",
+            storageBucket: "listadeasitencia.firebasestorage.app",
+            messagingSenderId: "379159619523",
+            appId: "1:379159619523:web:7aeb44a8bdc6d24bdd3f76"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = 'listadeasitencia';
+
+        let currentUser = null;
+        let loggedTeacher = null;
+        let students = [];
+        let teachers = [];
+        let html5QrScanner = null;
+        let isScannerRunning = false;
+        let isScannerTransitioning = false;
+        let scannedTodayIds = new Set();
+        let audioCtx = null;
+        let currentMaintCat = 'registros';
+        let currentInnerTab = 'alumnos';
+        let currentSysTab = 'borrar';
+
+        const alumnosColl = collection(db, 'artifacts', appId, 'public', 'data', 'alumnos');
+        const maestrosColl = collection(db, 'artifacts', appId, 'public', 'data', 'maestros');
+        const asistenciasColl = collection(db, 'artifacts', appId, 'public', 'data', 'asistencias');
+
+        const getMexicoDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City' }).format(new Date());
+        const getMexicoTime = () => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
+
+        const showStatus = (m, y) => { 
+            const e = document.getElementById('scan-status'); 
+            if(!e) return; 
+            e.innerText = m; 
+            e.className = `p-4 rounded text-center font-bold block ${y==='success'?'bg-green-100 text-green-700':(y==='warning'?'bg-amber-100 text-amber-700':'bg-red-100 text-red-700')}`; 
+            e.classList.remove('hidden'); 
+        };
+
+        const showModalMsg = (title, message, callback = null, isConfirm = false) => {
+            const modal = document.getElementById('custom-modal');
+            if(!modal) return;
+            document.getElementById('modal-msg-title').innerText = title;
+            document.getElementById('modal-msg-body').innerText = message;
+            const btnCancel = document.getElementById('btn-modal-cancel');
+            const btnConfirm = document.getElementById('btn-modal-confirm');
+            btnCancel.classList.toggle('hidden', !isConfirm);
+            modal.classList.remove('hidden');
+            
+            const btnConfirmClone = btnConfirm.cloneNode(true);
+            btnConfirm.replaceWith(btnConfirmClone);
+            const btnCancelClone = btnCancel.cloneNode(true);
+            btnCancel.replaceWith(btnCancelClone);
+
+            const cleanup = () => modal.classList.add('hidden');
+            btnConfirmClone.addEventListener('click', () => { cleanup(); if (callback) callback(); });
+            if(isConfirm) btnCancelClone.addEventListener('click', cleanup);
+        };
+
+        const initAudio = () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); };
+        const playSuccessSound = () => { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.setValueAtTime(880, audioCtx.currentTime); gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15); osc.start(); osc.stop(audioCtx.currentTime + 0.15); };
+        const playErrorSound = () => { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'square'; osc.frequency.setValueAtTime(120, audioCtx.currentTime); gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4); osc.start(); osc.stop(audioCtx.currentTime + 0.4); };
+
+        async function checkAdminLockStatus() {
+            try {
+                const snap = await getDocs(maestrosColl);
+                const hasRealAdminInDB = snap.docs.some(d => d.data().esAdmin === true && d.id !== 'TLAHUISCALPANTECUTLI');
+                const hint = document.getElementById('admin-hint');
+                if (!hasRealAdminInDB && hint) hint.classList.remove('hidden');
+                else if(hint) hint.classList.add('hidden');
+            } catch (e) {}
+        }
+
+        async function init() {
+            const initAuth = async () => {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try { await signInWithCustomToken(auth, __initial_auth_token); } catch (e) { await signInAnonymously(auth); }
+                } else { await signInAnonymously(auth); }
+            };
+            await initAuth();
+            onAuthStateChanged(auth, async (user) => {
+                currentUser = user;
+                if (user) {
+                    const loginBtn = document.getElementById('btn-login');
+                    if(loginBtn) loginBtn.disabled = false;
+                    const loginBtnText = document.getElementById('login-btn-text');
+                    if(loginBtnText) loginBtnText.innerText = 'Entrar';
+                    checkAdminLockStatus();
+                }
+            });
+            const today = getMexicoDate();
+            const df = document.getElementById('date-from'); if(df) df.value = today;
+            const dt = document.getElementById('date-to'); if(dt) dt.value = today;
+            const ddf = document.getElementById('delete-date-from'); if(ddf) ddf.value = today;
+            const ddt = document.getElementById('delete-date-to'); if(ddt) ddt.value = today;
+            const csvInput = document.getElementById('csv-file-input');
+            if(csvInput) csvInput.addEventListener('change', window.handleCSVUpload);
+        }
+
+        async function loadStudents() {
+            if (!currentUser) return;
+            try {
+                const snap = await getDocs(alumnosColl);
+                students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                if (currentInnerTab === 'alumnos' && currentMaintCat === 'registros') renderTable("catalog");
+            } catch(e) {}
+        }
+
+        async function loadTeachers() {
+            if (!currentUser) return;
+            try {
+                const snap = await getDocs(maestrosColl);
+                teachers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                if (currentInnerTab === 'maestros' && currentMaintCat === 'registros') renderTable("teachers");
+            } catch(e) {}
+        }
+
+        function renderTable(mode) {
+            const body = document.getElementById('data-table-body');
+            const head = document.getElementById('table-headers');
+            if(!body || !head) return;
+            document.getElementById('attendance-report-container').classList.add('hidden');
+            document.getElementById('general-table-container').classList.remove('hidden');
+            if (mode === "catalog") {
+                head.innerHTML = `<tr><th class="px-6 py-3 border-b uppercase text-xs">ID</th><th class="px-6 py-3 border-b uppercase text-xs">Nombre</th><th class="px-6 py-3 border-b text-center uppercase text-xs">QR</th><th class="px-6 py-3 border-b text-center uppercase text-xs">Ed</th><th class="px-6 py-3 border-b text-center uppercase text-xs">X</th></tr>`;
+                body.innerHTML = students.map(s => `<tr><td class="px-6 py-4 font-mono font-bold text-[#0e5b2f] uppercase tracking-tighter">${s.id}</td><td class="px-6 py-4 uppercase text-xs font-semibold">${s.nombre}</td><td class="px-6 py-4 text-center"><button onclick="window.showQR('${s.id}', '${s.nombre}')" class="text-orange-500 hover:scale-110"><i class="fas fa-qrcode"></i></button></td><td class="px-6 py-4 text-center"><button onclick="window.editStudent('${s.id}')" class="text-[#0e5b2f] hover:scale-110"><i class="fas fa-edit"></i></button></td><td class="px-6 py-4 text-center"><button onclick="window.confirmDeleteStudent('${s.id}')" class="text-red-400 hover:scale-110 transition-transform"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+            } else if (mode === "teachers") {
+                head.innerHTML = `<tr><th class="px-6 py-3 border-b uppercase text-xs">ID</th><th class="px-6 py-3 border-b uppercase text-xs">Nombre</th><th class="px-6 py-3 border-b uppercase text-xs">Rol</th><th class="px-6 py-3 border-b text-center uppercase text-xs">Ed</th><th class="px-6 py-3 border-b text-center uppercase text-xs">X</th></tr>`;
+                body.innerHTML = teachers.filter(t => t.id !== 'TLAHUISCALPANTECUTLI').map(t => `<tr><td class="px-6 py-4 font-mono font-bold text-[#0e5b2f]">${t.id}</td><td class="px-6 py-4 uppercase text-xs font-bold">${t.nombre}</td><td class="px-6 py-4 text-[10px] font-bold ${t.esAdmin?'text-orange-600':'text-slate-500'}">${t.esAdmin?'ADMIN':'DOCENTE'}</td><td class="px-6 py-4 text-center"><button onclick="window.editTeacher('${t.id}')" class="text-[#0e5b2f] hover:scale-110"><i class="fas fa-edit"></i></button></td><td class="px-6 py-4 text-center"><button onclick="window.confirmDeleteTeacher('${t.id}')" class="text-red-400 hover:scale-110 hover:scale-110 transition-transform"><i class="fas fa-trash-alt"></i></button></td></tr>`).join('');
+            }
+        }
+
+        async function initScanner() { if (isScannerRunning || isScannerTransitioning) return; isScannerTransitioning = true; if (!html5QrScanner) html5QrScanner = new Html5Qrcode("qr-reader"); try { await html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess); isScannerRunning = true; updateScannerUI(true); } catch (err) {} finally { isScannerTransitioning = false; } }
+        async function stopScanner() { if (!isScannerRunning || isScannerTransitioning) return; isScannerTransitioning = true; try { await html5QrScanner.stop(); isScannerRunning = false; updateScannerUI(false); } catch (err) {} finally { isScannerTransitioning = false; } }
+        function updateScannerUI(r) { const b = document.getElementById('btn-camera-text'); const o = document.getElementById('camera-off-overlay'); if (r) { if(b) b.innerText = "Apagar Cámara"; if(o) o.classList.add('hidden'); } else { if(b) b.innerText = "Encender Cámara"; if(o) o.classList.remove('hidden'); } }
+        function listenToAttendanceToday() { if (!currentUser) return; onSnapshot(asistenciasColl, (snap) => { const count = document.getElementById('scan-count'); const today = getMexicoDate(); scannedTodayIds.clear(); const logs = snap.docs.map(d => d.data()).filter(d => d.fecha === today).sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0)); logs.forEach(l => scannedTodayIds.add(l.alumnoId)); if(count) count.innerText = `${logs.length} HOY`; const list = document.getElementById('recent-logs'); if (logs.length === 0) { if(list) list.innerHTML = `<li class="p-4 text-center text-slate-400 italic text-sm uppercase font-bold">Sin registros hoy</li>`; return; } if(list) list.innerHTML = logs.slice(0, 10).map(l => `<li class="p-4 flex justify-between bg-white shadow-sm mb-1 px-4"><div><p class="font-bold uppercase text-xs">${l.nombre}</p><p class="text-[9px] text-slate-400 font-bold tracking-tighter">PROF: ${l.profesorNombre || 'N/A'}</p></div><span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-mono font-bold">${l.hora || '--:--'}</span></li>`).join(''); }); }
+        
+        async function generateQRAsync(c, t, s) { return new Promise((r) => { new QRCode(c, { text: t, width: s, height: s, correctLevel : QRCode.CorrectLevel.H }); setTimeout(r, 120); }); }
+
+        async function onScanSuccess(t) {
+            if (!currentUser || !loggedTeacher) return;
+            try { await html5QrScanner.pause(); } catch(e) {}
+            if (scannedTodayIds.has(t)) {
+                playErrorSound(); showStatus(`YA REGISTRADO HOY: ${t}`, "warning");
+            } else {
+                try {
+                    const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', t));
+                    if (snap.exists()) {
+                        await addDoc(asistenciasColl, { alumnoId: t, nombre: snap.data().nombre, profesorId: loggedTeacher.id, profesorNombre: loggedTeacher.nombre, fecha: getMexicoDate(), hora: getMexicoTime(), timestamp: serverTimestamp() });
+                        playSuccessSound(); showStatus(`REGISTRADO: ${snap.data().nombre}`, "success");
+                    } else { playErrorSound(); showStatus("NO REGISTRADO", "error"); }
+                } catch (e) {}
+            }
+            setTimeout(async () => { if (isScannerRunning) try { await html5QrScanner.resume(); } catch(e) {} const st = document.getElementById('scan-status'); if(st) st.classList.add('hidden'); }, 2000);
+        }
+
+        function enterApp() {
+            document.getElementById('section-login').classList.add('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('user-display-name').innerText = loggedTeacher.nombre;
+            document.getElementById('tab-admin').classList.remove('hidden');
+            const subtabMaint = document.getElementById('subtab-mantenimiento');
+            if (loggedTeacher.esAdmin) subtabMaint.classList.remove('hidden');
+            else subtabMaint.classList.add('hidden');
+            loadStudents(); loadTeachers(); listenToAttendanceToday(); window.switchTab('scanner');
+        }
+
+        // --- EXPOSICIÓN GLOBAL ---
+        window.attemptLogin = async () => {
+            const inputVal = document.getElementById('input-login-id').value.trim();
+            if (!inputVal) return;
+            const id = inputVal.toUpperCase();
+            try {
+                if (id === 'TLAHUISCALPANTECUTLI') {
+                    loggedTeacher = { id: 'TLAHUISCALPANTECUTLI', nombre: 'SUPERUSUARIO', materia: 'DIRECCIÓN', esAdmin: true };
+                    enterApp(); return;
+                }
+                const snapMaestros = await getDocs(maestrosColl);
+                const hasRealAdminInDB = snapMaestros.docs.some(d => d.data().esAdmin === true && d.id !== 'TLAHUISCALPANTECUTLI');
+                if (!hasRealAdminInDB && id === 'ADMIN') {
+                    loggedTeacher = { id: 'ADMIN', nombre: 'ADMIN INICIAL', materia: 'SISTEMA', esAdmin: true };
+                    enterApp(); return;
+                }
+                const teacherDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id));
+                if (teacherDoc.exists()) {
+                    loggedTeacher = { id: teacherDoc.id, ...teacherDoc.data() };
+                    enterApp();
+                } else {
+                    document.getElementById('login-error').classList.remove('hidden');
+                    playErrorSound();
+                    setTimeout(() => document.getElementById('login-error').classList.add('hidden'), 3000);
+                }
+            } catch (e) {}
+        };
+
+        window.logout = async () => {
+            showModalMsg("Cerrar Sesión", "¿Desea salir?", () => {
+                loggedTeacher = null;
+                const li = document.getElementById('input-login-id'); if(li) li.value = '';
+                document.getElementById('main-header').classList.add('hidden');
+                document.getElementById('main-content').classList.add('hidden');
+                document.getElementById('section-login').classList.remove('hidden');
+                checkAdminLockStatus();
+            }, true);
+        };
+
+        window.switchTab = async (tab) => {
+            document.getElementById('section-scanner').classList.toggle('hidden', tab !== 'scanner');
+            document.getElementById('section-admin').classList.toggle('hidden', tab !== 'admin');
+            const ts = document.getElementById('tab-scanner'); if(ts) ts.className = tab === 'scanner' ? 'px-4 py-2 rounded-md tab-active text-xs font-bold uppercase' : 'px-4 py-2 rounded-md hover:bg-slate-200 text-xs font-bold uppercase';
+            const ta = document.getElementById('tab-admin'); if(ta) ta.className = tab === 'admin' ? 'px-4 py-2 rounded-md tab-active text-xs font-bold uppercase' : 'px-4 py-2 rounded-md hover:bg-slate-200 text-xs font-bold uppercase';
+            if (tab === 'scanner') await initScanner(); else { await stopScanner(); window.switchSubTab('asistencia'); }
+        };
+
+        window.switchSubTab = (subtab) => {
+            ['asistencia', 'mantenimiento'].forEach(s => {
+                const el = document.getElementById('subcontent-' + s);
+                const btn = document.getElementById('subtab-' + s);
+                if(el) el.classList.add('hidden');
+                if(btn) btn.classList.remove('subtab-active');
+            });
+            const sel = document.getElementById('subcontent-' + subtab); if(sel) sel.classList.remove('hidden');
+            const sbt = document.getElementById('subtab-' + subtab); if(sbt) sbt.classList.add('subtab-active');
+            if (subtab === 'mantenimiento') window.switchMaintCategory('registros');
+            else {
+                document.getElementById('attendance-report-container').classList.add('hidden');
+                document.getElementById('general-table-container').classList.add('hidden');
+            }
+        };
+
+        window.switchMaintCategory = (cat) => {
+            currentMaintCat = cat;
+            const btns = document.querySelectorAll('.maint-cat-btn');
+            btns.forEach(btn => btn.className = "maint-cat-btn pb-2 px-4 text-xs font-bold uppercase border-b-2 border-transparent transition-all");
+            const catBtn = document.getElementById('maint-cat-' + cat); if(catBtn) catBtn.classList.add(cat === 'sistema' ? 'cat-active-orange' : 'cat-active');
+            const rs = document.getElementById('registros-subnav'); if(rs) rs.classList.toggle('hidden', cat !== 'registros');
+            ['alumnos', 'maestros', 'impresion', 'sistema'].forEach(c => {
+                const el = document.getElementById('innercontent-' + c);
+                if(el) el.classList.add('hidden');
+            });
+            if (cat === 'registros') window.switchInnerTab(currentInnerTab);
+            else if (cat === 'impresion') {
+                const ici = document.getElementById('innercontent-impresion'); if(ici) ici.classList.remove('hidden');
+                document.getElementById('general-table-container').classList.add('hidden');
+            } else if (cat === 'sistema') {
+                const ics = document.getElementById('innercontent-sistema'); if(ics) ics.classList.remove('hidden');
+                window.switchSystemSubTab(currentSysTab);
+                document.getElementById('general-table-container').classList.add('hidden');
+            }
+        };
+
+        window.switchInnerTab = (tab) => {
+            currentInnerTab = tab;
+            const btns = document.querySelectorAll('.inner-tab-btn');
+            btns.forEach(btn => btn.className = "inner-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all text-slate-500");
+            const activeBtn = document.getElementById('innertab-' + tab);
+            if (activeBtn) activeBtn.className = "inner-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inner-tab-active text-white shadow-sm";
+            document.getElementById('innercontent-alumnos').classList.add('hidden');
+            document.getElementById('innercontent-maestros').classList.add('hidden');
+            const itab = document.getElementById('innercontent-' + tab); if(itab) itab.classList.remove('hidden');
+            if (tab === 'alumnos') loadStudents(); else loadTeachers();
+        };
+
+        window.switchSystemSubTab = (tab) => {
+            currentSysTab = tab;
+            const btns = document.querySelectorAll('.sys-tab-btn');
+            btns.forEach(btn => btn.className = "sys-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all text-slate-500");
+            const activeBtn = document.getElementById('sys-tab-' + tab);
+            if (activeBtn) activeBtn.className = "sys-tab-btn px-6 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inner-tab-active text-white shadow-sm";
+            ['borrar', 'limpieza'].forEach(t => {
+                const el = document.getElementById('sys-content-' + t);
+                if(el) el.classList.add('hidden');
+            });
+            const st = document.getElementById('sys-content-' + tab); if(st) st.classList.remove('hidden');
+        };
+
+        window.addStudent = async () => {
+            const id = document.getElementById('input-id').value.trim().toUpperCase();
+            const nombre = document.getElementById('input-name').value.trim().toUpperCase();
+            if (!id || !nombre) return showModalMsg("Aviso", "Complete los campos.");
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id), { nombre, createdAt: serverTimestamp() });
+                document.getElementById('input-id').value = ''; document.getElementById('input-name').value = '';
+                await loadStudents(); showModalMsg("Éxito", "Alumno guardado.");
+            } catch(e) {}
+        };
+
+        window.addTeacher = async () => {
+            const id = document.getElementById('input-maestro-id').value.trim().toUpperCase();
+            const nombre = document.getElementById('input-maestro-name').value.trim().toUpperCase();
+            const materia = document.getElementById('input-maestro-materia').value.trim().toUpperCase();
+            const esAdmin = document.getElementById('input-maestro-admin').checked;
+            if (!id || !nombre) return showModalMsg("Aviso", "Faltan datos.");
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id), { nombre, materia, esAdmin, createdAt: serverTimestamp() });
+                document.getElementById('input-maestro-id').value = ''; document.getElementById('input-maestro-name').value = '';
+                await loadTeachers(); await checkAdminLockStatus(); showModalMsg("Éxito", "Maestro guardado.");
+            } catch(e) {}
+        };
+
+        window.generateAttendanceReport = async () => {
+            const from = document.getElementById('date-from').value;
+            const to = document.getElementById('date-to').value;
+            const group = document.getElementById('select-group').value;
+            if (!from || !to) return showModalMsg("Aviso", "Seleccione fechas.");
+            try {
+                const snap = await getDocs(asistenciasColl);
+                const logs = snap.docs.map(d => d.data());
+                const filteredLogs = logs.filter(l => l.fecha >= from && l.fecha <= to);
+                const presentIdsByDate = {};
+                const uniqueDates = Array.from(new Set(filteredLogs.map(l => l.fecha))).sort();
+                filteredLogs.forEach(l => { if(!presentIdsByDate[l.fecha]) presentIdsByDate[l.fecha] = new Set(); presentIdsByDate[l.fecha].add(l.alumnoId); });
+                let filtered = students.filter(s => group === "all" || s.id.substring(0, 2).toLowerCase() === group).sort((a,b) => a.nombre.localeCompare(b.nombre));
+                document.getElementById('report-teacher-name').innerText = loggedTeacher.nombre;
+                const head = document.getElementById('report-table-head');
+                const body = document.getElementById('report-table-body');
+                head.innerHTML = `<tr><th class="w-12 text-center">#</th><th>Nombre</th>${uniqueDates.map(d => `<th class="text-center font-mono text-[9px]">${d.substring(5)}</th>`).join('')}<th class="text-center font-bold">TOTAL</th></tr>`;
+                body.innerHTML = filtered.map((s, idx) => {
+                    let studentTotal = 0;
+                    const daysMarkup = uniqueDates.map(d => { 
+                        const p = presentIdsByDate[d] && presentIdsByDate[d].has(s.id); 
+                        if(p) studentTotal++;
+                        return `<td class="text-center font-bold ${p ? 'text-green-600' : 'text-red-500'}">${p ? '✓' : 'X'}</td>`; 
+                    }).join('');
+                    return `<tr><td class="text-center font-bold text-slate-400">${idx + 1}</td><td class="font-bold uppercase text-slate-700">${s.nombre}</td>${daysMarkup}<td class="text-center total-column-cell font-black bg-orange-50">${studentTotal}</td></tr>`;
+                }).join('');
+                document.getElementById('attendance-report-container').classList.remove('hidden');
+                document.getElementById('general-table-container').classList.add('hidden');
+                const area = document.getElementById('print-content');
+                area.innerHTML = `<div class="p-8"><div class="flex items-center justify-between mb-8 border-b-2 border-slate-900 pb-4 uppercase leading-none"><h1 class="text-2xl font-bold text-[#0e5b2f]">Colegio Xochicalli</h1><img src="logo.png" class="h-14" onerror="this.style.display='none'"></div><div class="mb-4 space-y-1"><p class="text-xs font-bold uppercase">PROFESOR: <span class="font-normal">${loggedTeacher.nombre}</span></p><p class="text-xs font-bold uppercase">PERIODO: <span class="font-normal">${from} al ${to}</span></p></div><table class="master-list-table"><thead><tr><th class="text-center w-8">#</th><th>Alumno</th>${uniqueDates.map(d => `<th class="text-center">${d.substring(5)}</th>`).join('')}<th class="text-center font-bold">Total</th></tr></thead><tbody>${filtered.map((s, i) => { let t = 0; const marks = uniqueDates.map(d => { const p = presentIdsByDate[d]?.has(s.id); if(p) t++; return `<td class="text-center">${p?'✓':'X'}</td>`; }).join(''); return `<tr><td class="text-center">${i + 1}</td><td class="uppercase font-bold">${s.nombre}</td>${marks}<td class="text-center font-bold">${t}</td></tr>`; }).join('')}</tbody></table></div>`;
+            } catch(e) {}
+        };
+
+        window.printAttendanceReport = () => {
+            showModalMsg("Procesando", "Generando el reporte para imprimir. Por favor espere...", () => { window.print(); });
+        };
+
+        window.exportStudentsCSV = async () => {
+            if (students.length === 0) return;
+            const csv = Papa.unparse([...students].sort((a,b) => a.id.localeCompare(b.id)).map(s => ({ ID: s.id, Nombre: s.nombre })));
+            const link = document.createElement("a");
+            link.setAttribute("href", URL.createObjectURL(new Blob([csv], { type: 'text/csv' })));
+            link.setAttribute("download", `Catalogo_Alumnos_${getMexicoDate()}.csv`); link.click();
+        };
+
+        window.handleCSVUpload = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            showModalMsg("Procesando", "Importando datos a la nube...");
+            Papa.parse(file, {
+                header: false, skipEmptyLines: true,
+                complete: async (results) => {
+                    let count = 0;
+                    for (const row of results.data) {
+                        const id = String(row[0]).trim().toUpperCase();
+                        const nombre = String(row[1]).trim().toUpperCase();
+                        if (id && nombre && id !== "ID") {
+                            try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id), { nombre, createdAt: serverTimestamp() }); count++; } catch (err) {}
+                        }
+                    }
+                    await loadStudents(); showModalMsg("Éxito", `Se han cargado ${count} alumnos correctamente.`);
+                    e.target.value = '';
+                }
+            });
+        };
+
+        window.confirmClearAttendance = () => { 
+            const f = document.getElementById('delete-date-from').value; 
+            const t = document.getElementById('delete-date-to').value; 
+            if (!f || !t) return;
+            showModalMsg("⚠️ BORRAR", `¿Eliminar asistencias del ${f} al ${t}?`, async () => {
+                const btn = document.getElementById('btn-clear-database');
+                if(btn) { btn.disabled = true; btn.innerText = "BORRANDO..."; }
+                try {
+                    const snap = await getDocs(asistenciasColl); let count = 0;
+                    for (const d of snap.docs) if (d.data().fecha >= f && d.data().fecha <= t) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'asistencias', d.id)); count++; }
+                    showModalMsg("Éxito", `Se eliminaron ${count} registros.`);
+                } catch (e) {} finally { if(btn) { btn.disabled = false; btn.innerText = "Eliminar asistencias"; } }
+            }, true);
+        };
+
+        window.confirmResetSystem = () => { 
+            showModalMsg("VACIAR SISTEMA", "Se borrará TODO de la nube.", async () => {
+                const as = await getDocs(asistenciasColl); for (const d of as.docs) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'asistencias', d.id));
+                const al = await getDocs(alumnosColl); for (const d of al.docs) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', d.id));
+                const ma = await getDocs(maestrosColl); for (const d of ma.docs) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', d.id));
+                location.reload();
+            }, true);
+        };
+
+        window.showQR = (id, name) => { 
+            const c = document.getElementById('modal-qr-container'); if (!c) return;
+            c.innerHTML = ""; document.getElementById('modal-title').innerText = name; document.getElementById('modal-id').innerText = id; 
+            new QRCode(c, { text: id, width: 200, height: 200 }); document.getElementById('qr-modal').classList.remove('hidden'); 
+        };
+        window.closeModal = () => document.getElementById('qr-modal').classList.add('hidden');
+        window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
+        window.confirmDeleteStudent = (id) => showModalMsg("Borrar Alumno", `¿Eliminar ${id}?`, async () => { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'alumnos', id)); loadStudents(); }, true);
+        window.confirmDeleteTeacher = (id) => showModalMsg("Borrar Maestro", `¿Eliminar ${id}?`, async () => { if(id===loggedTeacher.id) return; await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'maestros', id)); loadTeachers(); checkAdminLockStatus(); }, true);
+        window.toggleCamera = async () => { initAudio(); if (isScannerRunning) await stopScanner(); else await initScanner(); };
+        window.printMasterList = async () => { if (students.length === 0) return; showModalMsg("Generando reporte", "Preparando lista maestra..."); const area = document.getElementById('print-content'); const cID = document.getElementById('check-id').checked; const cName = document.getElementById('check-nombre').checked; const cQR = document.getElementById('check-qr').checked; area.innerHTML = `<div class="p-8"><div class="flex items-center justify-between mb-8 border-b-2 border-slate-900 pb-4 uppercase leading-none"><h1 class="text-2xl font-bold text-[#0e5b2f]">Colegio Xochicalli</h1><img src="logo.png" class="h-14" onerror="this.style.display='none'"></div><h2 class="text-center font-bold mb-4 uppercase underline">Lista Maestra</h2><table class="master-list-table"><thead><tr>${cID?'<th>ID</th>':''}${cName?'<th>Nombre</th>':''}${cQR?'<th class="text-center">QR</th>':''}</tr></thead><tbody id="print-master-body"></tbody></table></div>`; const tbody = document.getElementById('print-master-body'); const sorted = [...students].sort((a,b) => a.id.localeCompare(b.id)); for (const s of sorted) { const tr = document.createElement('tr'); tr.innerHTML = `${cID?`<td>${s.id}</td>`:''}${cName?`<td class="uppercase font-bold">${s.nombre}</td>`:''}${cQR?`<td class="text-center py-2"><div id="qr-mini-${s.id}" class="qr-wrapper flex justify-center"></div></td>`:''}`; tbody.appendChild(tr); } if(cQR) { for (const s of sorted) { const el = document.getElementById(`qr-mini-${s.id}`); if(el) await generateQRAsync(el, s.id, 65); } } setTimeout(() => window.print(), 1200); };
+        window.printAllQRs = async () => { if (students.length === 0) return; showModalMsg("Generando reporte", "Generando gafetes..."); const area = document.getElementById('print-content'); area.innerHTML = `<div class="p-4"><h1 class="text-xl font-bold text-center border-b mb-6 pb-2 uppercase text-[#0e5b2f]">Catálogo QR</h1><div id="print-qr-grid" class="qr-grid"></div></div>`; const grid = document.getElementById('print-qr-grid'); const sorted = [...students].sort((a,b) => a.id.localeCompare(b.id)); for (const s of sorted) { const card = document.createElement('div'); card.className = "flex flex-col items-center p-3 border rounded text-center"; card.style.pageBreakInside = "avoid"; card.innerHTML = `<p class="text-[8px] font-bold uppercase border-b w-full mb-2 font-bold text-[#0e5b2f]">Colegio Xochicalli</p><div id="pqr-${s.id}" class="qr-wrapper my-2 mx-auto"></div><h4 class="text-[9px] font-bold uppercase truncate w-full mb-1 font-semibold text-[#0e5b2f]">${s.nombre}</h4><p class="text-[10px] font-mono font-bold bg-slate-50 border w-full rounded py-0.5 mt-1 text-[#e96925]">${s.id}</p>`; grid.appendChild(card); } for (const s of sorted) { const el = document.getElementById(`pqr-${s.id}`); if(el) await generateQRAsync(el, s.id, 115); } setTimeout(() => window.print(), 1500); };
+
+        window.init = init;
+        init();
+    </script>
+</body>
+</html>
