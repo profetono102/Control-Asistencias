@@ -41,7 +41,6 @@
         }
 
         input[type="time"], input[type="number"] { text-align: center; font-weight: 700; }
-        
         .scroll-custom::-webkit-scrollbar { width: 6px; }
         .scroll-custom::-webkit-scrollbar-track { background: #f1f1f1; }
         .scroll-custom::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
@@ -50,12 +49,12 @@
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans text-xs">
 
     <!-- MODAL MENSAJES -->
-    <div id="custom-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[700] hidden flex items-center justify-center p-4 text-center">
-        <div class="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full p-8 space-y-4 border-t-8 border-school text-center">
+    <div id="custom-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[800] hidden flex items-center justify-center p-4 text-center">
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full p-8 space-y-4 border-t-8 border-school">
             <h3 id="modal-msg-title" class="text-lg font-black text-school uppercase">Aviso</h3>
             <p id="modal-msg-body" class="text-sm text-slate-600 font-medium"></p>
             <div id="modal-msg-footer" class="flex gap-2 pt-4">
-                <button id="btn-modal-confirm" class="flex-1 bg-orange-600 text-white py-3 rounded-xl font-bold text-xs uppercase shadow-lg active:scale-95 transition-transform">Entendido</button>
+                <button id="btn-modal-confirm" class="flex-1 bg-orange-600 text-white py-3 rounded-xl font-bold text-xs uppercase shadow-lg active:scale-95 transition-transform">Aceptar</button>
             </div>
         </div>
     </div>
@@ -77,29 +76,30 @@
             <div id="step-school-register" class="setup-step space-y-6">
                 <div class="space-y-2">
                     <i class="fas fa-plus-circle text-4xl text-school"></i>
-                    <h2 class="text-xl font-black text-school uppercase">Nueva Institución</h2>
-                    <p class="text-[10px] text-amber-600 font-black uppercase italic">Alta de nueva base de datos:</p>
+                    <h2 class="text-xl font-black text-school uppercase">Nueva Escuela</h2>
+                    <p class="text-[10px] text-amber-600 font-black uppercase italic">Configure al Administrador Maestro:</p>
                 </div>
                 <div class="space-y-4">
                     <input id="input-new-school-name" type="text" placeholder="NOMBRE DE LA ESCUELA" class="w-full px-4 py-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-orange-500 text-center font-bold uppercase shadow-sm">
+                    
                     <div class="bg-blue-50 p-6 rounded-[2rem] border border-dashed border-blue-200 space-y-3">
                         <i class="fas fa-user-shield text-blue-500 text-2xl"></i>
                         <h3 class="text-[10px] font-black text-blue-800 uppercase tracking-tighter">Administrador Maestro</h3>
-                        <p class="text-[9px] text-blue-600 leading-tight italic">Su primer acceso será con el ID: <span class="font-black text-blue-800">123</span></p>
+                        <p class="text-[9px] text-blue-600 leading-tight italic text-center">Su primer acceso será con el ID: <span class="font-black text-blue-800">123</span></p>
                         <input id="input-admin-name" type="text" placeholder="NOMBRE COMPLETO" class="w-full px-4 py-2 border border-blue-100 rounded-xl uppercase font-bold outline-none text-center">
                     </div>
                 </div>
-                <button onclick="window.registerSchoolAndAdmin()" class="w-full bg-school text-white font-black py-5 rounded-2xl shadow-xl transition-all uppercase tracking-widest active:scale-95">Crear Institución</button>
+                <button onclick="window.registerSchoolAndAdmin()" class="w-full bg-school text-white font-black py-5 rounded-2xl shadow-xl transition-all uppercase tracking-widest active:scale-95">Dar de Alta Institución</button>
                 <button onclick="window.resetGateway()" class="text-[9px] text-slate-400 font-bold uppercase underline">Volver</button>
             </div>
 
             <div id="step-login" class="setup-step space-y-6">
                 <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
                     <p id="display-school-name" class="text-base font-black text-school uppercase tracking-tighter">--</p>
-                    <p id="display-school-key" class="text-[9px] text-slate-400 font-mono tracking-tighter">--</p>
+                    <p id="display-school-key" class="text-[9px] text-slate-400 font-mono tracking-tighter italic">--</p>
                 </div>
                 <div class="space-y-1">
-                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Identificación de Personal</label>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Credencial Personal</label>
                     <input id="input-login-id" type="text" placeholder="SU ID PERSONAL" class="w-full px-4 py-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-orange-500 text-center text-2xl font-black uppercase transition-all shadow-inner">
                 </div>
                 <button id="btn-login" onclick="window.attemptLogin()" class="w-full bg-orange-600 text-white font-black py-5 rounded-2xl shadow-xl transition-all uppercase tracking-widest active:scale-95 text-center">Entrar al Sistema</button>
@@ -113,12 +113,12 @@
         <div class="bg-white p-10 rounded-[3rem] shadow-2xl max-w-sm w-full space-y-6 border-t-[12px] border-orange-500 animate-fadeIn text-center">
             <i class="fas fa-shield-alt text-6xl text-orange-500"></i>
             <div class="space-y-2">
-                <h2 class="text-xl font-black text-school uppercase">Seguridad Requerida</h2>
-                <p class="text-xs text-slate-500 font-medium leading-relaxed">Debe cambiar el ID temporal <span class="font-black text-orange-600">123</span> por uno nuevo y privado.</p>
+                <h2 class="text-xl font-black text-school uppercase">Personalizar Acceso</h2>
+                <p class="text-xs text-slate-500 font-medium leading-relaxed">Ha ingresado con el ID temporal. <br><span class="font-black text-orange-600 italic">Debe personalizar su identificación</span> para administrar la escuela.</p>
             </div>
             <div class="space-y-4">
                 <input id="input-forced-new-id" type="text" placeholder="NUEVO ID PERSONAL" class="w-full px-4 py-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-orange-500 text-center text-xl font-black uppercase shadow-inner">
-                <button onclick="window.updateTeacherForcedId()" class="w-full bg-orange-600 text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-transform uppercase tracking-widest text-[10px]">Actualizar e Ir a Horarios</button>
+                <button onclick="window.updateTeacherForcedId()" class="w-full bg-orange-600 text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-transform uppercase tracking-widest text-[10px]">Actualizar mi Acceso</button>
             </div>
         </div>
     </div>
@@ -140,8 +140,8 @@
                             <label class="text-[9px] font-black text-slate-400 uppercase text-center block">Hora Entrada</label>
                             <input id="setup-entry-time" type="time" value="08:00" class="w-full px-3 py-3 border-2 border-slate-100 rounded-2xl outline-none focus:border-orange-500 text-sm">
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-[9px] font-black text-slate-400 uppercase text-center block">Límite Retardo (m)</label>
+                        <div class="space-y-1 text-center">
+                            <label class="text-[9px] font-black text-slate-400 uppercase block">Límite Retardo (m)</label>
                             <input id="setup-lateness-threshold" type="number" value="10" class="w-full px-3 py-3 border-2 border-slate-100 rounded-2xl outline-none focus:border-orange-500 text-sm">
                         </div>
                     </div>
@@ -164,14 +164,14 @@
         </div>
     </section>
 
-    <!-- HEADER DE LA APP -->
+    <!-- UI DE LA APP (HEADER) -->
     <header id="main-header" class="bg-white shadow-sm no-print hidden border-b border-slate-100 sticky top-0 z-[100] text-center">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4 text-center">
             <div class="flex items-center gap-4 text-left">
                 <div class="flex flex-col">
                     <h1 id="header-school-name" class="text-xl font-black uppercase text-school leading-none tracking-tighter">--</h1>
                     <div class="flex gap-2 items-center justify-center md:justify-start mt-1">
-                        <span id="user-display-name" class="text-[10px] font-black text-slate-700 uppercase">--</span>
+                        <span id="user-display-name" class="text-[10px] font-black text-slate-700 uppercase tracking-tight">--</span>
                         <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
                         <span id="user-display-role" class="text-[9px] text-orange-600 font-bold uppercase italic italic tracking-tight">--</span>
                     </div>
@@ -205,7 +205,7 @@
                     <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-200 shadow-inner">
                         <div class="flex gap-3">
                             <input id="input-manual-id" type="text" placeholder="ID ALUMNO" class="flex-1 px-4 py-3 border-2 border-slate-100 rounded-2xl uppercase text-sm font-black outline-none focus:ring-2 focus:ring-orange-500 shadow-sm">
-                            <button onclick="window.manualAttendance()" class="bg-orange-600 text-white px-8 py-3 rounded-2xl text-xs font-black uppercase shadow-lg active:scale-95 transition-all">OK</button>
+                            <button onclick="window.manualAttendance()" class="bg-orange-600 text-white px-8 py-3 rounded-2xl text-xs font-black uppercase shadow-lg active:scale-95 transition-all text-center">OK</button>
                         </div>
                     </div>
                     <div id="scan-status" class="p-5 rounded-2xl text-center font-black hidden uppercase text-[10px] shadow-sm"></div>
@@ -214,7 +214,7 @@
 
             <div class="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden max-w-2xl mx-auto shadow-xl text-left">
                 <div class="px-8 py-5 bg-slate-50 border-b flex justify-between items-center">
-                    <h3 class="font-black text-[10px] uppercase text-school tracking-widest font-mono italic">Actividad Reciente</h3>
+                    <h3 class="font-black text-[10px] uppercase text-school tracking-widest font-mono italic">Registros Recientes</h3>
                     <span id="scan-count" class="bg-orange-100 text-orange-700 text-[10px] font-black px-5 py-1.5 rounded-full uppercase italic tracking-tighter">0 HOY</span>
                 </div>
                 <ul id="recent-logs" class="divide-y divide-slate-100 max-h-96 overflow-y-auto">
@@ -224,43 +224,40 @@
         </section>
 
         <!-- SECCIÓN ADMINISTRACIÓN -->
-        <section id="section-admin" class="hidden space-y-8 animate-fadeIn text-left">
-            <div id="admin-tabs" class="flex flex-wrap gap-2 border-b border-slate-200 pb-4 justify-center md:justify-start text-center">
+        <section id="section-admin" class="hidden space-y-8 animate-fadeIn text-left text-center">
+            <div id="admin-tabs" class="flex flex-wrap gap-2 border-b border-slate-200 pb-4 justify-center md:justify-start">
                 <button onclick="window.switchSubTab('asistencia')" id="subtab-asistencia" class="px-4 py-2 rounded-xl bg-white border text-[10px] font-black uppercase text-slate-600 transition-all">Reportes</button>
                 <button onclick="window.switchSubTab('mantenimiento')" id="subtab-mantenimiento" class="px-4 py-2 rounded-xl bg-white border text-[10px] font-black uppercase text-school transition-all">Mantenimiento</button>
                 <button onclick="window.switchSubTab('historial')" id="subtab-historial" class="hidden px-4 py-2 rounded-xl bg-white border text-[10px] font-black uppercase text-indigo-600 transition-all">Bitácora</button>
             </div>
 
-            <div id="subcontent-mantenimiento" class="hidden space-y-6">
+            <div id="subcontent-mantenimiento" class="hidden space-y-6 text-center md:text-left">
                 <div class="flex flex-wrap gap-4 border-b border-slate-200 pb-2 justify-center md:justify-start text-center">
-                    <button onclick="window.switchMaintCategory('alumnos')" id="maint-cat-alumnos" class="maint-cat-btn pb-2 px-4 text-[10px] font-black uppercase border-b-2 border-transparent transition-all">Alumnos</button>
-                    <button onclick="window.switchMaintCategory('maestros')" id="maint-cat-maestros" class="maint-cat-btn pb-2 px-4 text-[10px] font-black uppercase border-b-2 border-transparent transition-all">Personal</button>
-                    <button onclick="window.switchMaintCategory('institucion')" id="maint-cat-institucion" class="maint-cat-btn pb-2 px-4 text-[10px] font-black uppercase border-b-2 border-transparent transition-all text-orange-600 hidden">Escuela</button>
+                    <button onclick="window.switchMaintCategory('alumnos')" id="maint-cat-alumnos" class="maint-cat-btn pb-2 px-4 text-[10px] font-black uppercase border-b-2 border-transparent transition-all">Catálogo Alumnos</button>
+                    <button onclick="window.switchMaintCategory('maestros')" id="maint-cat-maestros" class="maint-cat-btn pb-2 px-4 text-[10px] font-black uppercase border-b-2 border-transparent transition-all">Gestión Personal</button>
+                    <button onclick="window.switchMaintCategory('institucion')" id="maint-cat-institucion" class="maint-cat-btn pb-2 px-4 text-[10px] font-black uppercase border-b-2 border-transparent transition-all text-orange-600 hidden">Institución</button>
                 </div>
 
-                <!-- MÓDULO MIGRACIÓN (SÓLO XOCHICALLI) -->
                 <div id="div-migracion-alerta" class="hidden bg-amber-50 p-6 rounded-[2rem] border-2 border-dashed border-amber-200 text-center space-y-3">
                     <i class="fas fa-history text-3xl text-amber-500"></i>
-                    <h3 class="text-sm font-black text-amber-800 uppercase italic">Rescate de Datos Históricos</h3>
-                    <p class="text-[10px] text-amber-700 max-w-sm mx-auto font-medium text-center">Se han detectado datos previos de Xochicalli. ¿Desea importarlos?</p>
-                    <button onclick="window.migrateXochicalliData()" class="bg-amber-500 text-white px-6 py-2 rounded-xl font-bold uppercase shadow-md active:scale-95 transition-all text-[10px]">Migrar Datos de Xochicalli</button>
+                    <h3 class="text-sm font-black text-amber-800 uppercase italic">Rescate de Datos</h3>
+                    <button onclick="window.migrateXochicalliData()" class="bg-amber-500 text-white px-6 py-2 rounded-xl font-bold uppercase shadow-md active:scale-95 transition-all text-[10px]">Migrar Historial Xochicalli</button>
                 </div>
 
-                <!-- GESTIÓN INSTITUCIÓN (NUEVO) -->
+                <!-- GESTIÓN INSTITUCIÓN -->
                 <div id="div-mantenimiento-institucion" class="hidden animate-fadeIn space-y-6 text-center">
                     <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 max-w-xl mx-auto space-y-6 shadow-xl text-left">
-                        <h3 class="font-black text-school uppercase text-center border-b pb-2 tracking-tighter">Datos de la Institución</h3>
+                        <h3 class="font-black text-school uppercase text-center border-b pb-2 tracking-tighter">Panel de la Institución</h3>
                         <div class="space-y-4">
                             <div class="space-y-1">
-                                <label class="text-[9px] font-black text-slate-400 uppercase ml-2">Nombre de la Escuela</label>
-                                <input id="edit-school-name" type="text" class="w-full px-4 py-3 border-2 border-slate-50 rounded-2xl uppercase font-bold outline-none focus:border-school shadow-sm">
+                                <label class="text-[9px] font-black text-slate-400 uppercase ml-2 text-center block">Nombre de la Escuela</label>
+                                <input id="edit-school-name" type="text" class="w-full px-4 py-3 border-2 border-slate-50 rounded-2xl uppercase font-bold outline-none focus:border-school shadow-sm text-center">
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-[9px] font-black text-slate-400 uppercase ml-2">Clave Única (Referencia)</label>
-                                <input id="display-school-key-readonly" type="text" readonly class="w-full px-4 py-3 border border-slate-100 rounded-2xl uppercase font-black bg-slate-50 opacity-60 text-slate-400 cursor-not-allowed">
-                                <p class="text-[8px] text-slate-400 italic text-center mt-1">La clave única no es editable para proteger la base de datos.</p>
+                            <div class="space-y-1 text-center">
+                                <label class="text-[9px] font-black text-slate-400 uppercase block">Clave Única (Protegida)</label>
+                                <input id="display-school-key-readonly" type="text" readonly class="w-full px-4 py-3 border border-slate-100 rounded-2xl uppercase font-black bg-slate-50 opacity-60 text-slate-400 cursor-not-allowed text-center">
                             </div>
-                            <button onclick="window.updateSchoolGlobalData()" class="w-full bg-school text-white font-black py-4 rounded-2xl uppercase shadow-lg active:scale-95 transition-all text-[10px]">Actualizar Datos Institucionales</button>
+                            <button onclick="window.updateSchoolGlobalData()" class="w-full bg-school text-white font-black py-4 rounded-2xl uppercase shadow-lg active:scale-95 transition-all text-[10px]">Actualizar Datos</button>
                         </div>
                     </div>
                 </div>
@@ -269,9 +266,9 @@
                 <div id="div-mantenimiento-maestros" class="hidden animate-fadeIn space-y-6">
                     <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 max-w-xl mx-auto space-y-4 shadow-xl text-left">
                         <h3 class="font-black text-school uppercase text-center border-b pb-2 tracking-tighter italic">Alta de Personal y Roles</h3>
-                        <div class="space-y-4">
+                        <div class="space-y-4 text-center">
                             <input id="input-m-name" type="text" placeholder="NOMBRE COMPLETO" class="w-full px-4 py-3 border-2 border-slate-50 rounded-2xl uppercase font-bold outline-none focus:border-school shadow-sm text-center">
-                            <div class="grid grid-cols-2 gap-4 text-center">
+                            <div class="grid grid-cols-2 gap-4">
                                 <input id="input-m-id" type="text" placeholder="ID TEMPORAL" class="w-full px-4 py-3 border-2 border-slate-50 rounded-2xl uppercase font-black outline-none focus:border-school shadow-sm">
                                 <select id="input-m-role" class="w-full px-4 py-3 border-2 border-slate-50 rounded-2xl uppercase font-black outline-none focus:border-school bg-slate-50 text-center shadow-sm">
                                     <option value="profesor">PROFESOR</option>
@@ -288,20 +285,20 @@
                     <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 space-y-4 shadow-lg text-left">
                         <h3 class="font-black text-school uppercase text-[10px] border-b pb-2">Captura Individual</h3>
                         <input id="input-a-id" type="text" placeholder="ID ALUMNO" class="w-full px-4 py-3 border rounded-2xl uppercase font-black outline-none focus:ring-1 focus:ring-school text-center">
-                        <input id="input-a-name" type="text" placeholder="NOMBRE COMPLETO" class="w-full px-4 py-3 border rounded-2xl uppercase font-bold outline-none focus:ring-1 focus:ring-school text-center">
+                        <input id="input-a-name" type="text" placeholder="NOMBRE COMPLETO" class="w-full px-4 py-3 border rounded-2xl uppercase font-bold outline-none focus:ring-1 focus:ring-school text-center text-center">
                         <button onclick="window.addStudent()" class="w-full bg-school text-white font-black py-4 rounded-2xl uppercase text-[10px] shadow-lg active:scale-95 transition-transform">Guardar Registro</button>
                     </div>
                     <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 text-center shadow-lg flex flex-col justify-center">
                         <i class="fas fa-file-import text-3xl text-slate-300 mb-3"></i>
                         <h3 class="font-black text-school uppercase text-[10px] border-b pb-2 mb-3 tracking-tighter">Carga Masiva (CSV)</h3>
                         <input type="file" id="csv-file-input" accept=".csv" class="hidden">
-                        <button onclick="document.getElementById('csv-file-input').click()" class="w-full bg-slate-50 text-slate-600 py-4 rounded-2xl border border-slate-200 font-black uppercase text-[10px] hover:bg-slate-100">Importar Alumnos</button>
+                        <button onclick="document.getElementById('csv-file-input').click()" class="w-full bg-slate-50 text-slate-600 py-4 rounded-2xl border border-slate-200 font-black uppercase text-[10px] hover:bg-slate-100">Importar Archivo</button>
                     </div>
                 </div>
 
                 <div id="general-table-container" class="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-2xl hidden animate-fadeIn text-left text-center">
                     <div class="px-8 py-5 bg-slate-50 border-b flex flex-col md:flex-row justify-between items-center gap-4 text-left">
-                        <h3 id="table-title-text" class="font-black text-school uppercase text-xs tracking-widest font-mono italic">REGISTROS</h3>
+                        <h3 id="table-title-text" class="font-black text-school uppercase text-xs tracking-widest font-mono italic text-center">REGISTROS</h3>
                         <div class="relative w-full md:w-1/2">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             <input type="text" id="record-search-input" placeholder="BUSCAR..." onkeyup="window.handleRecordSearch()" class="w-full pl-10 pr-6 py-3 border border-slate-200 rounded-2xl text-[10px] uppercase font-black outline-none focus:ring-1 focus:ring-orange-500 shadow-inner">
@@ -309,25 +306,25 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
-                            <thead id="table-headers" class="bg-slate-50 text-slate-400 text-[9px] font-black uppercase border-b"></thead>
-                            <tbody id="data-table-body" class="divide-y divide-slate-100 text-[10px] font-bold uppercase tracking-tight"></tbody>
+                            <thead id="table-headers" class="bg-slate-50 text-slate-400 text-[9px] font-black uppercase border-b text-center"></thead>
+                            <tbody id="data-table-body" class="divide-y divide-slate-100 text-[10px] font-bold uppercase tracking-tight text-center"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
             
-            <div id="subcontent-asistencia" class="hidden space-y-6 animate-fadeIn text-center">
+            <div id="subcontent-asistencia" class="hidden space-y-6 animate-fadeIn">
                  <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 flex flex-wrap gap-6 items-end shadow-lg text-left">
-                    <div class="flex-1 min-w-[150px]"><label class="text-[9px] font-black uppercase text-slate-400 block mb-1 ml-2">Desde</label><input id="date-from" type="date" class="w-full px-4 py-3 border rounded-2xl text-xs outline-none"></div>
-                    <div class="flex-1 min-w-[150px]"><label class="text-[9px] font-black uppercase text-slate-400 block mb-1 ml-2">Hasta</label><input id="date-to" type="date" class="w-full px-4 py-3 border rounded-2xl text-xs outline-none"></div>
+                    <div class="flex-1 min-w-[150px] text-center"><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Desde</label><input id="date-from" type="date" class="w-full px-4 py-3 border rounded-2xl text-xs outline-none"></div>
+                    <div class="flex-1 min-w-[150px] text-center"><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Hasta</label><input id="date-to" type="date" class="w-full px-4 py-3 border rounded-2xl text-xs outline-none"></div>
                     <button onclick="window.generateAttendanceReport()" class="bg-school text-white font-black px-8 py-3.5 rounded-2xl text-xs uppercase shadow-xl hover:opacity-90 active:scale-95 transition-all text-center">Generar Reporte</button>
                 </div>
                 <div id="attendance-report-container" class="hidden bg-white p-8 rounded-[3rem] border border-slate-200 shadow-2xl text-left animate-fadeIn">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-black text-school uppercase text-xl">Reporte Consolidado</h2>
+                    <div class="flex justify-between items-center mb-6 text-center">
+                        <h2 class="font-black text-school uppercase text-xl">Reporte de Asistencia</h2>
                         <button onclick="window.printAttendanceReport()" class="bg-slate-800 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-black transition-colors"><i class="fas fa-print mr-2"></i>Imprimir</button>
                     </div>
-                    <div class="overflow-x-auto rounded-[2rem] border border-slate-100">
+                    <div class="overflow-x-auto rounded-[2rem] border border-slate-100 text-center">
                         <table class="w-full text-left border-collapse">
                             <thead id="report-table-head" class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase border-b text-center"></thead>
                             <tbody id="report-table-body" class="divide-y divide-slate-100 text-[10px] font-bold text-center"></tbody>
@@ -338,7 +335,7 @@
 
             <div id="subcontent-historial" class="hidden space-y-6 text-left animate-fadeIn">
                 <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl flex justify-between items-center text-left">
-                    <div class="space-y-1">
+                    <div class="space-y-1 text-center md:text-left">
                         <h3 class="font-black text-indigo-900 uppercase text-sm font-mono tracking-tighter">Bitácora Global</h3>
                         <p class="text-[9px] text-slate-400 font-bold uppercase italic tracking-widest">Auditoría institucional de acciones</p>
                     </div>
@@ -347,7 +344,7 @@
                 <div class="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-2xl text-left">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-50 text-slate-400 text-[9px] font-black uppercase border-b text-center">
-                            <tr><th class="px-8 py-4 border-b">Fecha / Hora</th><th class="px-8 py-4 border-b">Usuario</th><th class="px-8 py-4 border-b">Acción</th></tr>
+                            <tr><th class="px-8 py-4 border-b">Fecha / Hora</th><th class="px-8 py-4 border-b">Usuario</th><th class="px-8 py-4 border-b text-center">Acción</th></tr>
                         </thead>
                         <tbody id="history-table-body" class="divide-y divide-slate-100 text-xs font-semibold text-slate-600 text-center"></tbody>
                     </table>
@@ -384,7 +381,7 @@
         const getColl = (name) => collection(db, 'artifacts', 'listadeasitencia', 'public', 'data', `${schoolKey}_${name}`);
         const getDocRef = (coll, id) => doc(db, 'artifacts', 'listadeasitencia', 'public', 'data', `${schoolKey}_${coll}`, id);
 
-        /* --- UTILIDADES GLOBALES --- */
+        /* --- VINCULACIÓN GLOBAL --- */
         window.getMexicoDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City' }).format(new Date());
         window.getMexicoTime = () => new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
         window.initAudio = () => { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); };
@@ -393,8 +390,8 @@
 
         window.showModalMsg = (title, message, callback = null) => {
             const modal = document.getElementById('custom-modal'); if(!modal) return;
-            document.getElementById('modal-msg-title').innerText = title;
-            document.getElementById('modal-msg-body').innerText = message;
+            const titleEl = document.getElementById('modal-msg-title'), bodyEl = document.getElementById('modal-msg-body');
+            if(titleEl) titleEl.innerText = title; if(bodyEl) bodyEl.innerText = message;
             modal.classList.remove('hidden');
             document.getElementById('btn-modal-confirm').onclick = () => { modal.classList.add('hidden'); if(callback) callback(); };
         };
@@ -438,7 +435,7 @@
         window.registerSchoolAndAdmin = async () => {
             const schName = document.getElementById('input-new-school-name').value.trim().toUpperCase();
             const admName = document.getElementById('input-admin-name').value.trim().toUpperCase();
-            if (!schName || !admName) return window.showModalMsg("Aviso", "Nombre de escuela y administrador son requeridos.");
+            if (!schName || !admName) return window.showModalMsg("Aviso", "Datos incompletos.");
             try {
                 await setDoc(doc(db, 'artifacts', 'listadeasitencia', 'public', 'data', 'colegios', schoolKey), { name: schName, createdAt: serverTimestamp() });
                 await setDoc(getDocRef('maestros', '123'), { nombre: admName, esAdmin: true, configDone: false, idCambiado: false, role: 'admin_maestro' });
@@ -450,7 +447,7 @@
         /* --- LOGIN Y SEGURIDAD --- */
         window.attemptLogin = async () => {
             const idInput = document.getElementById('input-login-id').value.trim().toUpperCase();
-            if (!idInput) return window.showModalMsg("Aviso", "Ingrese su ID de personal.");
+            if (!idInput) return window.showModalMsg("Aviso", "Ingrese su ID.");
             const btn = document.getElementById('btn-login'); btn.disabled = true;
             try {
                 const tSnap = await getDoc(getDocRef('maestros', idInput));
@@ -460,14 +457,13 @@
                         document.getElementById('section-gateway').classList.add('hidden');
                         document.getElementById('forced-id-modal').classList.remove('hidden');
                     } else if (!loggedTeacher.configDone) {
-                        document.getElementById('section-gateway').classList.add('hidden');
-                        document.getElementById('section-user-setup').classList.remove('hidden');
+                        window.openUserSetup();
                     } else { enterApp(); }
                 } else {
                     if (idInput === 'TLAHUISCALPANTECUTLI') { 
                         loggedTeacher = { id: idInput, nombre: 'SUPERUSUARIO', esAdmin: true, configDone: true, idCambiado: true, role: 'super' };
                         enterApp();
-                    } else { window.showModalMsg("Acceso Denegado", "ID no registrado."); }
+                    } else { window.showModalMsg("Denegado", "ID no registrado."); }
                 }
             } catch (e) { window.showModalMsg("Error", "Fallo de conexión."); }
             finally { btn.disabled = false; }
@@ -486,11 +482,12 @@
                 loggedTeacher.id = newId; loggedTeacher.idCambiado = true;
                 document.getElementById('forced-id-modal').classList.add('hidden');
                 window.openUserSetup();
-            } catch(e) { window.showModalMsg("Error", "No se pudo actualizar el ID."); }
+            } catch(e) { window.showModalMsg("Error", "Fallo al actualizar acceso."); }
         };
 
-        /* --- CONFIGURACIÓN DE TIEMPOS --- */
+        /* --- CONFIGURACIÓN TIEMPOS --- */
         window.openUserSetup = () => {
+            document.getElementById('section-gateway').classList.add('hidden');
             document.getElementById('section-user-setup').classList.remove('hidden');
             if(loggedTeacher.configDone) {
                 document.getElementById('setup-entry-time').value = loggedTeacher.entryTime || "08:00";
@@ -508,37 +505,38 @@
                 recessReturn: document.getElementById('setup-recess-return').value,
                 configDone: true
             };
-            if (!config.entryTime || !config.classDuration) return window.showModalMsg("Aviso", "Complete los campos.");
+            if (!config.entryTime || !config.classDuration) return window.showModalMsg("Aviso", "Complete los campos requeridos.");
             try {
                 await setDoc(getDocRef('maestros', loggedTeacher.id), config, { merge: true });
                 loggedTeacher = { ...loggedTeacher, ...config };
                 document.getElementById('section-user-setup').classList.add('hidden');
                 enterApp();
-                await window.logAction("Configuración de horarios actualizada");
-            } catch (e) { window.showModalMsg("Error", "Fallo al guardar horarios."); }
+                await window.logAction("Sincronización de horarios completada.");
+            } catch (e) { window.showModalMsg("Error", "Fallo al sincronizar con Firebase."); }
         };
 
-        /* --- DASHBOARD --- */
+        /* --- DASHBOARD CORE --- */
         function enterApp() {
             document.getElementById('section-gateway').classList.add('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('main-content').classList.remove('hidden');
             document.getElementById('header-school-name').innerText = schoolName;
             document.getElementById('user-display-name').innerText = loggedTeacher.nombre;
+            
             const isSuper = loggedTeacher.id === 'TLAHUISCALPANTECUTLI';
             const isAdminMaestro = loggedTeacher.role === 'admin_maestro';
             const isAdminSec = loggedTeacher.role === 'admin_sec';
             const isEntrance = loggedTeacher.role === 'entrada';
             
-            document.getElementById('user-display-role').innerText = isSuper ? 'SUPERUSUARIO' : (isAdminMaestro ? 'ADMIN MAESTRO' : (isAdminSec ? 'ADMIN SECUNDARIO' : (isEntrance ? 'PORTERÍA' : 'DOCENTE')));
-            document.getElementById('tab-admin').classList.toggle('hidden', !isAdminMaestro && !isAdminSec && !isSuper);
+            const isAdmin = isAdminMaestro || isAdminSec || isSuper;
             
-            // Mostrar pestaña Institución solo a Admin Maestro
+            const roleStr = isSuper ? 'SUPERUSUARIO' : (isAdminMaestro ? 'ADMIN MAESTRO' : (isAdminSec ? 'ADMIN SECUNDARIO' : (isEntrance ? 'PORTERÍA' : 'DOCENTE')));
+            document.getElementById('user-display-role').innerText = roleStr;
+            document.getElementById('tab-admin').classList.toggle('hidden', !isAdmin);
             document.getElementById('maint-cat-institucion').classList.toggle('hidden', !isAdminMaestro && !isSuper);
 
             if(loggedTeacher.configDone) document.getElementById('current-schedule-label').innerText = isEntrance ? "VIGILANCIA ACCESO" : `ENTRADA: ${loggedTeacher.entryTime} | CLASE: ${loggedTeacher.classDuration}m`;
             
-            // Alerta migración si es Xochicalli
             if(schoolKey === 'XOCHICALLI' && isAdminMaestro) document.getElementById('div-migracion-alerta').classList.remove('hidden');
 
             loadStudents(); loadTeachers(); listenToAttendanceToday(); window.switchTab('scanner');
@@ -563,32 +561,28 @@
 
         window.switchMaintCategory = (c) => {
             currentMaintCat = c;
-            document.querySelectorAll('.maint-cat-btn').forEach(b => b.className = "maint-cat-btn pb-2 px-4 text-[10px] font-black uppercase border-b-2 border-transparent transition-all");
-            const act = document.getElementById('maint-cat-' + c); if(act) act.classList.add('cat-active');
+            document.querySelectorAll('.maint-cat-btn').forEach(b => b.className = "maint-cat-btn pb-2 px-4 text-[10px] font-black uppercase border-b-2 border-transparent transition-all text-center");
+            const act = document.getElementById('maint-cat-' + (c === 'institucion' ? 'institucion' : (c === 'alumnos' ? 'alumnos' : 'maestros'))); if(act) act.classList.add('cat-active');
             ['alumnos', 'maestros', 'institucion'].forEach(x => document.getElementById(`div-mantenimiento-${x}`)?.classList.add('hidden'));
             document.getElementById(`div-mantenimiento-${c}`)?.classList.remove('hidden');
-            
             if(c === 'institucion') {
                 document.getElementById('general-table-container').classList.add('hidden');
                 document.getElementById('edit-school-name').value = schoolName;
                 document.getElementById('display-school-key-readonly').value = schoolKey;
-            } else {
-                renderTable(c === 'alumnos' ? "catalog" : "teachers");
-            }
+            } else { renderTable(c === 'alumnos' ? "catalog" : "teachers"); }
         };
 
         window.updateSchoolGlobalData = async () => {
             const newName = document.getElementById('edit-school-name').value.trim().toUpperCase();
-            if(!newName) return window.showModalMsg("Aviso", "El nombre de la escuela no puede estar vacío.");
+            if(!newName) return window.showModalMsg("Aviso", "Nombre requerido.");
             try {
                 await setDoc(doc(db, 'artifacts', 'listadeasitencia', 'public', 'data', 'colegios', schoolKey), { name: newName }, { merge: true });
-                schoolName = newName;
-                document.getElementById('header-school-name').innerText = schoolName;
-                window.showModalMsg("Éxito", "Datos de la escuela actualizados.");
-                await window.logAction("Actualización de nombre de escuela");
-            } catch(e) { window.showModalMsg("Error", "Fallo al actualizar base de datos."); }
+                schoolName = newName; document.getElementById('header-school-name').innerText = schoolName;
+                window.showModalMsg("Éxito", "Institución actualizada.");
+            } catch(e) {}
         };
 
+        /* --- DATA MANAGEMENT --- */
         async function loadStudents() { if(!schoolKey) return; const snap = await getDocs(getColl('alumnos')); students = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => a.nombre.localeCompare(b.nombre)); }
         async function loadTeachers() { if(!schoolKey) return; const snap = await getDocs(getColl('maestros')); teachers = snap.docs.map(d => ({ id: d.id, ...d.data() })); }
 
@@ -596,14 +590,14 @@
             const body = document.getElementById('data-table-body'), head = document.getElementById('table-headers');
             if(!body || !head) return; document.getElementById('general-table-container').classList.remove('hidden');
             if (mode === "catalog") {
-                head.innerHTML = `<tr><th class='px-8 py-4 border-b'>ID Alumno</th><th class='px-8 py-4 border-b text-center'>Nombre</th><th class='px-8 py-4 border-b text-center'>X</th></tr>`;
+                head.innerHTML = `<tr><th class='px-8 py-4 border-b text-center'>ID</th><th class='px-8 py-4 border-b text-center'>Nombre Alumno</th><th class='px-8 py-4 border-b text-center'>X</th></tr>`;
                 const data = filterTerm ? students.filter(s => s.nombre.includes(filterTerm) || s.id.includes(filterTerm)) : students;
-                body.innerHTML = data.map(s => `<tr><td class='px-8 py-4 font-black'>${s.id}</td><td class='px-8 py-4 font-bold'>${s.nombre}</td><td class='px-8 py-4 text-center'><button onclick='window.confirmDeleteStudent("${s.id}", "${s.nombre}")' class="text-red-400"><i class='fas fa-trash'></i></button></td></tr>`).join('');
+                body.innerHTML = data.map(s => `<tr><td class='px-8 py-4 font-black text-center'>${s.id}</td><td class='px-8 py-4 font-bold text-center'>${s.nombre}</td><td class='px-8 py-4 text-center'><button onclick='window.confirmDeleteStudent("${s.id}", "${s.nombre}")' class="text-red-400 hover:text-red-600"><i class='fas fa-trash-alt'></i></button></td></tr>`).join('');
             } else if (mode === "teachers") {
-                head.innerHTML = `<tr><th class='px-8 py-4 border-b'>ID</th><th class='px-8 py-4 border-b text-center'>Nombre</th><th class='px-8 py-4 border-b text-center'>Rol</th><th class='px-8 py-4 border-b text-center'>X</th></tr>`;
+                head.innerHTML = `<tr><th class='px-8 py-4 border-b text-center'>ID</th><th class='px-8 py-4 border-b text-center'>Personal</th><th class='px-8 py-4 border-b text-center tracking-tighter'>Rol</th><th class='px-8 py-4 border-b text-center'>X</th></tr>`;
                 const rawData = teachers.filter(t => t.id !== 'TLAHUISCALPANTECUTLI' && t.id !== '123' && t.id !== loggedTeacher.id);
                 const data = filterTerm ? rawData.filter(t => t.nombre.includes(filterTerm) || t.id.includes(filterTerm)) : rawData;
-                body.innerHTML = data.map(t => `<tr><td class='px-8 py-4 font-black'>${t.idCambiado ? '<i class="fas fa-lock opacity-20 mr-2"></i>' : ''}${t.id}</td><td class='px-8 py-4 font-bold'>${t.nombre}</td><td class='px-8 py-4 italic text-orange-600 text-center'>${t.role}</td><td class='px-8 py-4 text-center'><button onclick='window.confirmDeleteTeacher("${t.id}", "${t.nombre}")' class="text-red-400"><i class='fas fa-trash'></i></button></td></tr>`).join('');
+                body.innerHTML = data.map(t => `<tr><td class='px-8 py-4 font-black text-center'>${t.idCambiado ? '<i class="fas fa-lock opacity-20 mr-2"></i>' : ''}${t.id}</td><td class='px-8 py-4 font-bold text-center'>${t.nombre}</td><td class='px-8 py-4 italic text-orange-600 tracking-tighter text-center uppercase font-black'>${t.role}</td><td class='px-8 py-4 text-center'><button onclick='window.confirmDeleteTeacher("${t.id}", "${t.nombre}")' class="text-red-400 hover:text-red-600"><i class='fas fa-trash-alt'></i></button></td></tr>`).join('');
             }
         }
 
@@ -624,21 +618,17 @@
             const id = document.getElementById('input-a-id').value.trim().toUpperCase();
             const nombre = document.getElementById('input-a-name').value.trim().toUpperCase();
             if (!id || !nombre) return;
-            try { await setDoc(getDocRef('alumnos', id), { nombre, createdAt: serverTimestamp() }); document.getElementById('input-a-id').value = ''; document.getElementById('input-a-name').value = ''; await loadStudents(); renderTable("catalog"); window.showStatus("Alumno guardado", "success"); } catch(e) {}
+            try { await setDoc(getDocRef('alumnos', id), { nombre, createdAt: serverTimestamp() }); document.getElementById('input-a-id').value = ''; document.getElementById('input-a-name').value = ''; await loadStudents(); renderTable("catalog"); window.showStatus("Guardado", "success"); } catch(e) {}
         };
 
+        /* --- MOTOR ESCANEO --- */
         window.initScanner = async () => {
             if (isScannerRunning || isScannerTransitioning) return; isScannerTransitioning = true;
             if (!html5QrScanner) html5QrScanner = new Html5Qrcode("qr-reader");
             try { await html5QrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => window.processAttendance(t)); isScannerRunning = true; window.updateScannerUI(true); } 
             catch (err) {} finally { isScannerTransitioning = false; }
         };
-
-        window.stopScanner = async () => {
-            if (!isScannerRunning || isScannerTransitioning) return; isScannerTransitioning = true;
-            try { await html5QrScanner.stop(); isScannerRunning = false; window.updateScannerUI(false); } catch (e) {} finally { isScannerTransitioning = false; }
-        };
-
+        window.stopScanner = async () => { if (!isScannerRunning || isScannerTransitioning) return; isScannerTransitioning = true; try { await html5QrScanner.stop(); isScannerRunning = false; window.updateScannerUI(false); } catch (e) {} finally { isScannerTransitioning = false; } };
         window.toggleCamera = async () => { if (isScannerRunning) await window.stopScanner(); else await window.initScanner(); };
         window.updateScannerUI = (r) => { const b = document.getElementById('btn-camera-text'); if(b) b.innerText = r ? "Apagar Cámara" : "Encender Cámara"; };
 
@@ -677,24 +667,8 @@
             onSnapshot(getColl('historial'), (snap) => {
                 const body = document.getElementById('history-table-body'); if(!body) return;
                 const logs = snap.docs.map(d => d.data()).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                body.innerHTML = logs.map(l => `<tr><td class='px-8 py-4 font-mono'>${l.fecha} ${l.hora}</td><td class='px-8 py-4 font-bold uppercase'>${l.usuario}</td><td class='px-8 py-4 text-slate-500'>${l.descripcion}</td></tr>`).join('');
+                body.innerHTML = logs.map(l => `<tr><td class='px-8 py-4 font-mono text-center'>${l.fecha} ${l.hora}</td><td class='px-8 py-4 font-bold uppercase text-center'>${l.usuario}</td><td class='px-8 py-4 text-slate-500 text-center'>${l.descripcion}</td></tr>`).join('');
             });
-        };
-
-        window.migrateXochicalliData = async () => {
-            if (schoolKey !== 'XOCHICALLI') return;
-            window.showModalMsg("Migrando", "Por favor espere mientras rescatamos los datos...");
-            try {
-                const collectionsToMigrate = ['alumnos', 'maestros', 'asistencias', 'historial'];
-                for (const colName of collectionsToMigrate) {
-                    const legacySnap = await getDocs(collection(db, 'artifacts', 'listadeasitencia', 'public', 'data', colName));
-                    for (const legacyDoc of legacySnap.docs) {
-                        await setDoc(getDocRef(colName, legacyDoc.id), legacyDoc.data());
-                    }
-                }
-                window.showModalMsg("Éxito", "Datos migrados correctamente.");
-                enterApp();
-            } catch (e) { window.showModalMsg("Error", "Error durante la migración."); }
         };
 
         window.initializeApplication = async () => {
@@ -703,13 +677,12 @@
             const today = window.getMexicoDate();
             if(document.getElementById('date-from')) document.getElementById('date-from').value = today;
             if(document.getElementById('date-to')) document.getElementById('date-to').value = today;
-            const csvInput = document.getElementById('csv-file-input');
-            if(csvInput) csvInput.addEventListener('change', (e) => window.handleCSVUpload(e));
         };
 
         window.confirmDeleteStudent = (id, name) => window.showModalMsg("Borrar", `¿Eliminar a ${name}?`, async () => { await deleteDoc(getDocRef('alumnos', id)); await loadStudents(); renderTable("catalog"); }, true);
         window.confirmDeleteTeacher = (id, name) => window.showModalMsg("Borrar", `¿Eliminar a ${name}?`, async () => { await deleteDoc(getDocRef('maestros', id)); await loadTeachers(); renderTable("teachers"); }, true);
         window.handleRecordSearch = () => { renderTable(currentMaintCat === 'alumnos' ? "catalog" : "teachers", document.getElementById('record-search-input').value.toUpperCase()); };
+        window.printAttendanceReport = () => window.print();
 
         window.initializeApplication();
     </script>
